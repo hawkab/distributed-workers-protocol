@@ -1,0 +1,16 @@
+{
+  "operation": "command.run",
+  "input": {
+    "program": "transform-v1",
+    "payload": {
+      "source": "https://example.org/input",
+      "output_version": 1
+    }
+  },
+  "required_capabilities": [
+    "command.run.v1",
+    "artifact.stream",
+    "program.transform.v1"
+  ],
+  "idempotency_key": "app:transform-v1:source-revision1"
+}

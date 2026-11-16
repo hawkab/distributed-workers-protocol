@@ -59,6 +59,42 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "command.run"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "required": [
+          "required_capabilities"
+        ],
+        "properties": {
+          "input": {
+            "$ref": "command-request.schema.json"
+          },
+          "required_capabilities": {
+            "allOf": [
+              {
+                "contains": {
+                  "const": "command.run.v1"
+                }
+              },
+              {
+                "contains": {
+                  "const": "artifact.stream"
+                }
+              }
+            ]
+          }
+        }
+      }
     }
   ]
 }

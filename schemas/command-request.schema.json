@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Opt-in native command request",
+  "type": "object",
+  "required": [
+    "program",
+    "payload"
+  ],
+  "properties": {
+    "program": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque private operator program ID. Never an executable path or command line."
+    },
+    "payload": {
+      "type": "object",
+      "description": "Opaque application payload serialized alone to the fixed process stdin as UTF-8 JSON."
+    }
+  },
+  "additionalProperties": false
+}

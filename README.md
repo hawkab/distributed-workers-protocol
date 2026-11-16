@@ -7,6 +7,7 @@ Portable job, completion, durable effect journal and streaming artifact formats.
 - [JSON Schemas](schemas/)
 - [Runtime choices and primary references](RUNTIMES.md)
 - [Compute example](examples/job.json)
+- [Opt-in native command example](examples/command.json)
 - [Portable JS + HTTP example](examples/javascript-http.json)
 - [PHP-compatible declarative download](examples/http-artifact.json)
 - [HTTPS conformance probe](tools/probe-api.py)

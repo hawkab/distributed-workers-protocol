@@ -413,3 +413,70 @@ package_name + "\n" + version_code + "\n" + version_name + "\n" + url + "\n" + s
 The package is `local.hwak.fleetworker`. Package/certificate must match the
 installed application and only a greater version code installs. Gradle version
 properties remain `workerVersionCode` and `workerVersionName`.
+
+## Opt-in native command execution
+
+`command.run` is a generic backend for an operator-provisioned program. It is not
+an arbitrary shell, executable download or filesystem path supplied by a task.
+An implementation advertises `command.run.v1` only while at least one configured
+program is usable, along with each usable program's operator-chosen version
+capability. Jobs require `command.run.v1`, `artifact.stream` and the exact program
+version capability. These capabilities identify configured runtime support;
+there is no catalog of application-specific operations in this protocol.
+
+```json
+{"operation":"command.run",
+ "input":{"program":"transform-v1","payload":{"source":"https://example.org/input"}},
+ "required_capabilities":["command.run.v1","artifact.stream","program.transform.v1"]}
+```
+
+The private operator configuration maps that opaque ID to an absolute executable,
+fixed argv, exact SHA-256, explicit fixed environment values and version
+capability. The executor verifies usability and hash before advertisement and
+again immediately before launch. Deployment must keep executable/dependency paths
+operator-controlled and immutable during a launch; a hash check is not a hostile
+local filesystem attestation. The program is launched directly without a shell.
+Only `payload` is serialized to stdin as UTF-8 JSON; worker IDs, tokens, gateway
+configuration and the task envelope are not added to it. Environment inheritance
+is disabled, apart from Windows SystemRoot; dependency paths must be explicitly
+configured. Program provisioning and cross-compilation belong to its owner.
+
+Raw stdout is opaque application data. Stream it through bounded buffers and
+backpressure to a durable artifact, without a full-body buffer or local payload
+file. Return [command result metadata](schemas/command-result.schema.json):
+
+```json
+{"artifact":{"artifact_id":"opaque-id","name":"stdout.bin","length":123,
+ "sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+ "media_type":"application/octet-stream"},"exit_code":0,
+ "stderr":{"tail_base64":"","bytes":0,"retained_bytes":0,"truncated":false}}
+```
+
+Nonzero exit, process signal or execution failure produces a failed completion
+while retaining stdout when it can be sealed. Stderr is a separately bounded
+byte tail with total/retained counts and an explicit truncation flag; it is not
+mixed into stdout or printed in worker logs. Cancellation/lease loss kills the
+child process tree and preserves acknowledged output. A lost chunk or finish
+ACK repeats the same idempotent write. Durable stdout/hash/exit metadata can seal
+an already completed execution after restart; a sealed result is reused before
+spawning another process. Command metadata is removed only after the matching
+completion ACK, or retained with a quarantined completion.
+
+A private program's replay policy is `never` by default. If execution was started
+but no complete durable output/exit record exists, a restart reports
+`command_outcome_uncertain`; it must not silently repeat possible side effects.
+An operator may declare a genuinely repeatable program `safe`. Its restart uses
+a new retained upload generation and reruns the same independently idempotent
+unit; never append fresh stdout to an older partial output. This is not exactly
+once process execution. Native network calls do not use the HTTP host effect
+journal, and an operator declaration cannot make an unsafe vendor idempotent.
+
+This baseline has no native checkpoint/progress side channel or cross-host
+process checkpoint migration. Use independent resumable units and application
+idempotency instead of one monolithic campaign per process. Long jobs keep their
+lease and have no added total runtime deadline. Native programs can access their
+OS account's files and network; a child process is not a security sandbox.
+Nonempty `job.network` must be rejected because this backend cannot enforce the
+host HTTP allow-policy inside a native process. Real isolation requires an
+operator-provisioned OS/container boundary. Node is the initial backend; Android
+and PHP must not advertise this capability without an implemented native runner.

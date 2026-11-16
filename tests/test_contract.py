@@ -71,6 +71,22 @@ class ContractTests(unittest.TestCase):
         self.assertEqual({'javascript', 'javascript.portable.v1', 'http.request', 'artifact.stream'}, set(job['required_capabilities']))
         validate('job', job)
 
+    def test_native_command_input_is_opaque_payload_not_task_command_line(self):
+        value = json.loads((ROOT / 'examples/command.json').read_text())
+        validate('job', value)
+        for injected in ({'argv': ['unsafe']}, {'executable': '/unconfigured/path'}):
+            bad = copy.deepcopy(value); bad['input'].update(injected)
+            with self.assertRaises(jsonschema.ValidationError): validate('job', bad)
+        for capabilities in (['command.run.v1'], ['artifact.stream'], []):
+            with self.assertRaises(jsonschema.ValidationError): validate('job', dict(value, required_capabilities=capabilities))
+
+    def test_native_command_result_retains_artifact_on_nonzero_exit(self):
+        value = {'artifact': ARTIFACT, 'exit_code': 7, 'stderr': {'tail_base64': 'ZXJyb3I=', 'bytes': 500, 'retained_bytes': 5, 'truncated': True}}
+        validate('command-result', value)
+        validate('completion', dict(IDENTITY, status='failed', result=value, artifact_ids=['opaque']))
+        for bad in ({'exit_code': -1}, {'stderr': {'tail_base64': '', 'bytes': -1, 'retained_bytes': 0, 'truncated': False}}):
+            with self.assertRaises(jsonschema.ValidationError): validate('command-result', dict(value, **bad))
+
     def test_old_completion_without_artifacts(self):
         validate('completion', dict(IDENTITY, status='succeeded', result={'value': 1}))
 

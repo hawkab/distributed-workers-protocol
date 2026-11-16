@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Read an external effect without permission to redispatch",
+  "type": "object",
+  "required": [
+    "state",
+    "effect_id",
+    "execution_id",
+    "request_sha256"
+  ],
+  "properties": {
+    "state": {
+      "enum": [
+        "started",
+        "uncertain",
+        "completed"
+      ]
+    },
+    "effect_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "execution_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "request_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "response": {
+      "$ref": "http-response.schema.json"
+    },
+    "artifact_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": false
+}

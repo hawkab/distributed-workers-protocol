@@ -20,6 +20,7 @@ import shutil
 import socket
 import ssl
 import stat
+import struct
 import subprocess
 import sys
 import tarfile
@@ -716,6 +717,81 @@ def archive(path, entries, epoch, *, zip_format=False):
                 tar.addfile(info, io.BytesIO(data))
 
 
+def amqp_application_ready(uri):
+    """AMQP login + virtual-host open, rather than Erlang VM ping readiness."""
+    address = urllib.parse.urlsplit(uri)
+    def short(value):
+        value = value.encode()
+        if len(value) > 255:
+            raise Failure("test_amqp_short_string_invalid")
+        return bytes([len(value)]) + value
+    def exact(connection, count):
+        chunks = bytearray()
+        while len(chunks) < count:
+            part = connection.recv(count - len(chunks))
+            if not part:
+                raise OSError("amqp_startup_connection_closed")
+            chunks.extend(part)
+        return bytes(chunks)
+    def method(connection):
+        kind, channel, length = struct.unpack(">BHI", exact(connection, 7))
+        payload = exact(connection, length)
+        end = exact(connection, 1)
+        if kind != 1 or channel != 0 or end != b"\xce" or len(payload) < 4:
+            raise Failure("test_amqp_protocol_invalid")
+        return struct.unpack(">HH", payload[:4]), payload[4:]
+    def send(connection, number, arguments=b""):
+        payload = struct.pack(">HH", 10, number) + arguments
+        connection.sendall(struct.pack(">BHI", 1, 0, len(payload)) + payload + b"\xce")
+    host = address.hostname
+    port = address.port or (5671 if address.scheme == "amqps" else 5672)
+    with socket.create_connection((host, port), timeout=10) as raw:
+        connection = ssl.create_default_context().wrap_socket(raw, server_hostname=host) if address.scheme == "amqps" else raw
+        try:
+            connection.sendall(b"AMQP\x00\x00\x09\x01")
+            number, data = method(connection)
+            if number != (10, 10):
+                raise OSError("amqp_application_not_ready")
+            auth = b"\0" + urllib.parse.unquote(address.username or "guest").encode() + b"\0" + urllib.parse.unquote(address.password or "guest").encode()
+            capabilities = short("authentication_failure_close") + b"t\x01"
+            properties = short("capabilities") + b"F" + struct.pack(">I", len(capabilities)) + capabilities
+            send(connection, 11, struct.pack(">I", len(properties)) + properties + short("PLAIN") + struct.pack(">I", len(auth)) + auth + short("en_US"))
+            number, data = method(connection)
+            if number == (10, 50):
+                if len(data) >= 2 and struct.unpack(">H", data[:2])[0] in (403, 530):
+                    raise Failure("test_amqp_authentication_rejected")
+                raise OSError("amqp_application_not_ready")
+            if number != (10, 30) or len(data) != 8:
+                raise OSError("amqp_application_not_ready")
+            channels, frame_max, _ = struct.unpack(">HIH", data)
+            send(connection, 31, struct.pack(">HIH", channels, frame_max, 0))
+            virtual_host = urllib.parse.unquote(address.path[1:]) if address.path not in ("", "/") else "/"
+            send(connection, 40, short(virtual_host) + short("") + b"\0")
+            number, data = method(connection)
+            if number == (10, 50):
+                if len(data) >= 2 and struct.unpack(">H", data[:2])[0] in (403, 530):
+                    raise Failure("test_amqp_virtual_host_rejected")
+                raise OSError("amqp_application_not_ready")
+            if number != (10, 41):
+                raise OSError("amqp_application_not_ready")
+            send(connection, 50, struct.pack(">H", 200) + short("CI readiness") + struct.pack(">HH", 0, 0))
+            method(connection)
+        finally:
+            if connection is not raw:
+                connection.close()
+
+
+def wait_amqp_application(uri, running=lambda: True):
+    while True:
+        if not running():
+            raise Failure("test_service_stopped")
+        try:
+            amqp_application_ready(uri)
+            return
+        except OSError:
+            time.sleep(1)  # Startup progress has no arbitrary attempt/time cap.
+
+
 @contextlib.contextmanager
 def test_services():
     if os.environ.get("REGISTRY_TEST_DATABASE_URL") and os.environ.get("FLEET_TEST_AMQP_URL"):
@@ -730,6 +806,7 @@ def test_services():
                     raise Failure("test_service_dns_unavailable") from None
                 except OSError:
                     time.sleep(1)
+        wait_amqp_application(os.environ["FLEET_TEST_AMQP_URL"])
         yield os.environ.copy()
         return
     prefix = "fleet-ci-" + secrets.token_hex(6)
@@ -756,6 +833,7 @@ def test_services():
         env = os.environ.copy()
         env["REGISTRY_TEST_DATABASE_URL"] = "postgres://postgres:" + password + "@127.0.0.1:" + pg + "/postgres?sslmode=disable"
         env["FLEET_TEST_AMQP_URL"] = "amqp://fleetci:" + password + "@127.0.0.1:" + mq + "/"
+        wait_amqp_application(env["FLEET_TEST_AMQP_URL"], running=lambda: run(["docker", "inspect", "-f", "{{.State.Running}}", names[1]]).strip() == b"true")
         yield env
     finally:
         for name in names:

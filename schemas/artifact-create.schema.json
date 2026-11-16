@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Open an idempotent binary upload",
+  "type": "object",
+  "required": [
+    "worker_id",
+    "attempt_id",
+    "fencing_token",
+    "key",
+    "media_type"
+  ],
+  "properties": {
+    "worker_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "attempt_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "fencing_token": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "media_type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

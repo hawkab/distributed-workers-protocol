@@ -15,7 +15,8 @@
       "type": "object"
     },
     "script": {
-      "type": "string"
+      "type": "string",
+      "description": "JavaScript source. Legacy run(input,resume) is preserved. Using run(input,resume,ctx) requires javascript.portable.v1 capability; network host calls additionally require http.request and artifact.stream."
     },
     "idempotency_key": {
       "type": "string"
@@ -25,11 +26,36 @@
       "items": {
         "type": "string"
       },
-      "uniqueItems": true
+      "uniqueItems": true,
+      "description": "Actual executor capabilities, including javascript.portable.v1 for the versioned ctx host ABI. javascript alone can route to an older two-argument executor."
     },
     "priority": {
       "type": "integer"
+    },
+    "network": {
+      "$ref": "network-policy.schema.json"
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "http.request"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "$ref": "http-request.schema.json"
+          }
+        }
+      }
+    }
+  ]
 }

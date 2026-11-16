@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Optional per-job network policy",
+  "type": "object",
+  "required": [],
+  "properties": {
+    "origins": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[Hh][Tt][Tt][Pp][Ss]?://[^/]+$"
+      },
+      "uniqueItems": true
+    },
+    "methods": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z]+$"
+      },
+      "uniqueItems": true
+    },
+    "request_headers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "response_modes": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "artifact",
+          "text",
+          "json"
+        ]
+      },
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": false,
+  "description": "Optional allow-policy. Omitted dimension unrestricted; explicit empty array denies that dimension. Origins are canonical scheme/host/port, checked on every redirect."
+}

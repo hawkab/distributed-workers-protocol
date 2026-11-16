@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Portable HTTP request",
+  "type": "object",
+  "required": [
+    "url"
+  ],
+  "properties": {
+    "effect_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^[Hh][Tt][Tt][Pp][Ss]?://"
+    },
+    "method": {
+      "type": "string",
+      "pattern": "^[!#$%&'*+.^_`|~0-9A-Za-z-]+$",
+      "default": "GET"
+    },
+    "headers": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[!#$%&'*+.^_`|~0-9A-Za-z-]+$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[^\\r\\n]*$"
+      }
+    },
+    "body_text": {
+      "type": "string"
+    },
+    "response": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "mode": {
+          "enum": [
+            "artifact",
+            "text",
+            "json"
+          ],
+          "default": "artifact"
+        },
+        "max_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "name": {
+          "type": "string"
+        },
+        "media_type": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "enum": [
+                  "text",
+                  "json"
+                ]
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "max_bytes"
+            ]
+          }
+        }
+      ]
+    },
+    "replay": {
+      "enum": [
+        "safe",
+        "idempotent",
+        "never"
+      ]
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "idempotency_header": {
+      "type": "string",
+      "pattern": "^[!#$%&'*+.^_`|~0-9A-Za-z-]+$",
+      "default": "Idempotency-Key"
+    },
+    "redirect": {
+      "enum": [
+        "follow",
+        "manual"
+      ],
+      "default": "follow"
+    },
+    "timeouts": {
+      "type": "object",
+      "properties": {
+        "connect_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Connection timeout in milliseconds; 0 disables this timeout."
+        },
+        "read_idle_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Source read inactivity timeout; not a whole response deadline. 0 disables it."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "replay": {
+            "const": "idempotent"
+          }
+        },
+        "required": [
+          "replay"
+        ]
+      },
+      "then": {
+        "required": [
+          "idempotency_key"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "replay": {
+            "const": "safe"
+          }
+        },
+        "required": [
+          "replay"
+        ]
+      },
+      "then": {
+        "properties": {
+          "method": {
+            "type": "string",
+            "pattern": "^(?:[Gg][Ee][Tt]|[Hh][Ee][Aa][Dd])$"
+          }
+        }
+      }
+    }
+  ],
+  "description": "Declarative operation defaults effect_id=request; ctx.http.request requires a stable explicit effect_id. Semantic normalization and validation are mandatory beyond JSON Schema."
+}

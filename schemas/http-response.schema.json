@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HTTP response with durable binary or bounded inline body",
+  "type": "object",
+  "required": [
+    "status",
+    "headers",
+    "url"
+  ],
+  "properties": {
+    "status": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 599
+    },
+    "headers": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[!#$%&'*+.^_`|~0-9a-z-]+$"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "artifact": {
+      "$ref": "artifact-ref.schema.json"
+    },
+    "body_text": {
+      "type": "string"
+    },
+    "body_json": {},
+    "body_error": {
+      "type": "object",
+      "required": [
+        "code"
+      ],
+      "properties": {
+        "code": {
+          "enum": [
+            "inline_limit_exceeded",
+            "invalid_utf8",
+            "invalid_json"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "required": [
+        "artifact"
+      ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "body_text"
+            ]
+          },
+          {
+            "required": [
+              "body_json"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "required": [
+        "body_text"
+      ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "artifact"
+            ]
+          },
+          {
+            "required": [
+              "body_json"
+            ]
+          },
+          {
+            "required": [
+              "body_error"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "required": [
+        "body_json"
+      ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "artifact"
+            ]
+          },
+          {
+            "required": [
+              "body_text"
+            ]
+          },
+          {
+            "required": [
+              "body_error"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "body_error"
+        ]
+      },
+      "then": {
+        "required": [
+          "artifact"
+        ]
+      }
+    }
+  ]
+}

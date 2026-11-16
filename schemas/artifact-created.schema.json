@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Durable upload identity",
+  "type": "object",
+  "required": [
+    "upload_id"
+  ],
+  "properties": {
+    "upload_id": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": false
+}

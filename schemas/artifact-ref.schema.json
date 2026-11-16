@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Sealed durable binary artifact reference",
+  "type": "object",
+  "required": [
+    "artifact_id",
+    "name",
+    "sha256",
+    "length",
+    "media_type"
+  ],
+  "properties": {
+    "artifact_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "length": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "media_type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "committed": {
+      "type": "boolean"
+    },
+    "candidate_saved": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

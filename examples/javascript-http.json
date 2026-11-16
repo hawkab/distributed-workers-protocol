@@ -1,0 +1,24 @@
+{
+  "operation": "javascript",
+  "input": {
+    "url": "https://example.org/source.bin"
+  },
+  "script": "function run(input, resume, ctx) {\n  var r = ctx.http.request({effect_id: \"source-download-v1\", url: input.url,\n    method: \"GET\", replay: \"safe\", response: {mode: \"artifact\", name: \"source.bin\"}});\n  ctx.checkpoint({download: r.artifact});\n  ctx.progress({bytes: r.artifact.length});\n  return {download: r.artifact, status: r.status};\n}",
+  "required_capabilities": [
+    "javascript",
+    "javascript.portable.v1",
+    "http.request",
+    "artifact.stream"
+  ],
+  "network": {
+    "origins": [
+      "https://example.org"
+    ],
+    "methods": [
+      "GET"
+    ],
+    "response_modes": [
+      "artifact"
+    ]
+  }
+}

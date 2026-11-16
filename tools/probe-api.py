@@ -1,81 +1,199 @@
 #!/usr/bin/env python3
-"""Run on the dedicated host: public HTTPS/auth/idempotence/result smoke proof.
+"""Isolated HTTPS/auth/durability proof; optional effect and binary-stream checks.
 
-Creates a uniquely capability-scoped fixture; no TV or legacy jobs are consumed.
+Creates a unique capability-scoped fixture. Never consumes TV or legacy jobs.
+The binary fixture is deliberately finite; production bodies use streaming APIs.
 """
 import argparse
 import hashlib
-import urllib.parse
 import json
 from pathlib import Path
-import urllib.request
 import urllib.error
+import urllib.parse
+import urllib.request
 import uuid
 
-parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--config', type=Path, default=Path(__file__).resolve().parents[1] / '.local/probe.local.json')
-parser.add_argument('--check', action='store_true', help='Validate local settings without issuing API requests')
-args = parser.parse_args()
-try:
-    settings = json.loads(args.config.read_text())
-    base = settings['api_base'].rstrip('/')
-    secret_file = Path(settings['admin_secret_file'])
-    parsed = urllib.parse.urlsplit(base)
-    if parsed.scheme != 'https' or not parsed.hostname or parsed.username or parsed.query or parsed.fragment:
-        raise ValueError('invalid HTTPS base')
-except (OSError, ValueError, KeyError, TypeError):
-    parser.error('Valid private probe settings are required')
-if args.check:
-    print('Private probe configuration is valid.')
-    raise SystemExit(0)
-admin = json.loads(secret_file.read_text())['admin_token']
+
+class ApiClient:
+    def __init__(self, base, opener=urllib.request.urlopen):
+        self.base, self.opener = base.rstrip('/'), opener
+
+    def call(self, method, path, value=None, token=None, status=200, *,
+             raw=None, identity=None, binary=False):
+        if raw is not None and value is not None:
+            raise ValueError('Choose JSON or raw body')
+        data = raw if raw is not None else (json.dumps(value).encode() if value is not None else None)
+        headers = {'Content-Type': 'application/octet-stream' if raw is not None else 'application/json'}
+        if token:
+            headers['Authorization'] = 'Bearer ' + token
+        if identity:
+            headers.update({'X-Worker-Id': identity['worker_id'],
+                            'X-Attempt-Id': identity['attempt_id'],
+                            'X-Fencing-Token': str(identity['fencing_token'])})
+        request = urllib.request.Request(self.base + path, data=data, method=method, headers=headers)
+        try:
+            # Connection/read inactivity bound for these small probe RPCs, not a job deadline.
+            response = self.opener(request, timeout=30)
+        except urllib.error.HTTPError as error:
+            response = error
+        with response:
+            body = response.read()
+            expected = (status,) if isinstance(status, int) else status
+            if response.status not in expected:
+                raise AssertionError((path, response.status, status))
+        if binary:
+            return body
+        return json.loads(body) if body else None
 
 
-def api(method, path, value=None, token=None, status=200):
-    data = json.dumps(value).encode() if value is not None else None
-    headers = {'Content-Type': 'application/json'}
-    if token:
-        headers['Authorization'] = 'Bearer ' + token
-    req = urllib.request.Request(base + path, data=data, method=method, headers=headers)
+def network_artifact_checks(api, job_id, identity, device, admin):
+    """Exercise gateway persistence without contacting any source/vendor URL."""
+    prefix = '/v1/jobs/' + job_id
+    fixture = bytes(range(256)) * 3 + 'Отчёт\u00a0готов'.encode()
+    digest = hashlib.sha256(fixture).hexdigest()
+    create = dict(identity, key='probe/' + str(uuid.uuid4()),
+                  media_type='application/octet-stream', name='proof.bin')
+    upload = api('POST', prefix + '/artifacts', create, device, 201)['upload_id']
+    assert api('POST', prefix + '/artifacts', create, device)['upload_id'] == upload
+    upload_path = '/v1/artifacts/' + urllib.parse.quote(upload, safe='')
+    split = 257
+    first = api('PUT', upload_path + '/chunks/0', token=device, raw=fixture[:split], identity=identity)
+    assert first['offset'] == 0 and first['next_offset'] == split
+    assert first['sha256'] == hashlib.sha256(fixture[:split]).hexdigest()
+    assert api('PUT', upload_path + '/chunks/0', token=device,
+               raw=fixture[:split], identity=identity) == first
+    api('PUT', upload_path + '/chunks/0', token=device, status=409,
+        raw=b'conflicting bytes', identity=identity)
+    state = api('GET', upload_path + '/status', token=device, identity=identity)
+    assert state['offset'] == split and state['segments_count'] == 1
+    assert 'segments' not in state, 'Status must remain bounded'
+    last = api('PUT', upload_path + '/chunks/' + str(split), token=device,
+               raw=fixture[split:], identity=identity)
+    assert last['next_offset'] == len(fixture)
+    finish = dict(identity, length=len(fixture), sha256=digest)
+    artifact = api('POST', upload_path + '/finish', finish, device)
+    assert artifact['length'] == len(fixture) and artifact['sha256'] == digest
+    assert api('POST', upload_path + '/finish', finish, device) == artifact
+    assert api('GET', '/v1/admin/artifacts/' + artifact['artifact_id'] + '/content',
+               token=admin, binary=True) == fixture
+    api('GET', '/v1/admin/artifacts/' + artifact['artifact_id'] + '/content', token=device, status=401)
+    content_path = '/v1/artifacts/' + artifact['artifact_id'] + '/content'
+    assert api('GET', content_path, token=device, identity=identity, binary=True) == fixture
+    api('GET', content_path, token=device, status=401)
+    api('GET', content_path, token=device, identity=dict(identity, attempt_id=str(uuid.uuid4())), status=401)
+
+    effect = prefix + '/effects/probe-never'
+    source_request = {'effect_id': 'probe-never', 'url': 'https://example.invalid/fixture',
+                      'method': 'POST', 'headers': {'Accept': '*/*'}, 'body_text': 'fixture',
+                      'replay': 'never', 'response': {'mode': 'artifact'}}
+    execution_id = str(uuid.uuid4())
+    begin = dict(identity, execution_id=execution_id, request=source_request)
+    reservation = api('POST', effect + '/begin', begin, device)
+    assert reservation['state'] == 'execute'
+    assert api('POST', effect + '/begin', begin, device) == reservation
+    different_live_call = dict(begin, execution_id=str(uuid.uuid4()))
+    assert api('POST', effect + '/begin', different_live_call, device)['state'] == 'uncertain'
+    changed_request = dict(source_request, body_text='different request')
+    api('POST', effect + '/begin', dict(begin, request=changed_request), device, 409)
+    # No vendor POST was made: the probe records only a synthetic known fixture response.
+    response = {'status': 200, 'headers': {'content-type': ['application/octet-stream']},
+                'url': source_request['url'], 'artifact': artifact}
+    recorded = dict(identity, execution_id=execution_id,
+                    request_sha256=reservation['request_sha256'], response=response,
+                    artifact_ids=[artifact['artifact_id']])
+    receipt = api('POST', effect + '/finish', recorded, device)
+    assert receipt['recorded'] is True
+    assert api('POST', effect + '/finish', recorded, device) == receipt
+    replay = api('POST', effect + '/begin', different_live_call, device)
+    assert replay['state'] == 'completed' and replay['response'] == response
+    observed = api('GET', effect + '/status', token=device, identity=identity)
+    assert observed['state'] == 'completed' and observed['artifact_ids'] == [artifact['artifact_id']]
+
+    safe_effect = prefix + '/effects/probe-safe'
+    safe_request = {'effect_id': 'probe-safe', 'url': 'https://example.invalid/fixture',
+                    'method': 'GET', 'replay': 'safe', 'response': {'mode': 'artifact'}}
+    first_call = dict(identity, execution_id=str(uuid.uuid4()), request=safe_request)
+    old = api('POST', safe_effect + '/begin', first_call, device)
+    fresh_call = dict(first_call, execution_id=str(uuid.uuid4()))
+    fresh = api('POST', safe_effect + '/begin', fresh_call, device)
+    assert old['state'] == fresh['state'] == 'execute'
+    assert fresh['execution_id'] == fresh_call['execution_id']
+    api('POST', safe_effect + '/finish', dict(recorded, execution_id=first_call['execution_id'],
+        request_sha256=old['request_sha256']), device, (200, 409))
+    current = api('GET', safe_effect + '/status', token=device, identity=identity)
+    assert current['execution_id'] == fresh_call['execution_id']
+    assert current['state'] != 'completed', 'A stale execution must not clobber current reservation'
+    api('POST', safe_effect + '/finish', dict(recorded, execution_id=fresh_call['execution_id'],
+        request_sha256=fresh['request_sha256']), device)
+    return artifact['artifact_id'], ['chunk durable offset', 'chunk repeat/conflict',
+        'sealed binary exact download', 'device scoped artifact recovery', 'bounded upload status', 'effect live nonce replay',
+        'uncertain never effect', 'effect payload conflict', 'effect finish replay',
+        'completed effect replay', 'safe takeover fencing']
+
+
+def run_probe(base, admin, network_artifacts=False, opener=urllib.request.urlopen):
+    api = ApiClient(base, opener).call
+    run = uuid.uuid4().hex
+    worker = 'api-proof-' + run
+    api('GET', '/healthz')
+    api('GET', '/v1/admin/jobs', status=401)
+    device = api('POST', '/v1/admin/workers', {'worker_id': worker}, admin, 201)['token']
+    capability = 'proof.' + run
+    api('POST', '/v1/workers/heartbeat', {'worker_id': worker, 'version_code': 0,
+        'version_name': 'HTTPS probe', 'capabilities': [capability], 'abis': [], 'state': 'test'}, device)
+    api('POST', '/v1/workers/heartbeat', {'worker_id': 'another-worker'}, device, 401)
+    job = {'idempotency_key': 'api-proof-' + run, 'operation': 'sha256',
+           'input': {'text': 'Durable HTTPS result'}, 'required_capabilities': [capability]}
+    job_id = api('POST', '/v1/admin/jobs', job, admin, 201)['job_id']
+    assert api('POST', '/v1/admin/jobs', job, admin, 201)['job_id'] == job_id
+    api('POST', '/v1/admin/jobs', dict(job, input={'text': 'different payload'}), admin, 409)
+    claim = {'worker_id': worker, 'capabilities': [capability]}
+    attempt = api('POST', '/v1/jobs/claim', claim, device)['job']
+    assert attempt['id'] == job_id
+    assert api('POST', '/v1/jobs/claim', claim, device)['job']['attempt_id'] == attempt['attempt_id']
+    identity = {key: attempt[key] for key in ('attempt_id', 'fencing_token')}
+    identity['worker_id'] = worker
+    checks = ['public TLS', 'admin authentication', 'worker isolation', 'enqueue idempotence',
+              'payload conflict', 'repeat claim', 'durable result', 'completion receipt replay']
+    artifact_ids = []
+    if network_artifacts:
+        artifact_id, extra_checks = network_artifact_checks(api, job_id, identity, device, admin)
+        artifact_ids.append(artifact_id)
+        checks.extend(extra_checks)
+    complete = dict(identity, status='succeeded',
+                    result={'sha256': hashlib.sha256(job['input']['text'].encode()).hexdigest()})
+    if artifact_ids:
+        complete['artifact_ids'] = artifact_ids
+    receipt = api('POST', '/v1/jobs/' + job_id + '/complete', complete, device)
+    assert receipt['committed'] is True
+    assert api('POST', '/v1/jobs/' + job_id + '/complete', complete, device) == receipt
+    saved = api('GET', '/v1/admin/jobs/' + job_id, token=admin)
+    assert saved['status'] == 'succeeded' and saved['result']['result'] == complete['result']
+    api('POST', '/v1/jobs/claim', claim, device, 204)
+    return {'passed': True, 'job_id': job_id, 'worker_id': worker, 'checks': checks}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--config', type=Path, default=Path(__file__).resolve().parents[1] / '.local/probe.local.json')
+    parser.add_argument('--check', action='store_true', help='Validate settings without API requests')
+    parser.add_argument('--network-artifacts', action='store_true', help='Also verify effect journal and binary artifact extension')
+    args = parser.parse_args()
     try:
-        response = urllib.request.urlopen(req, timeout=30)
-    except urllib.error.HTTPError as e:
-        response = e
-    with response:
-        raw = response.read()
-        assert response.status == status, (path, response.status, status)
-    return json.loads(raw) if raw else None
+        settings = json.loads(args.config.read_text())
+        base = settings['api_base'].rstrip('/')
+        secret_file = Path(settings['admin_secret_file'])
+        parsed = urllib.parse.urlsplit(base)
+        if parsed.scheme != 'https' or not parsed.hostname or parsed.username or parsed.query or parsed.fragment:
+            raise ValueError('Invalid HTTPS base')
+    except (OSError, ValueError, KeyError, TypeError):
+        parser.error('Valid private probe settings are required')
+    if args.check:
+        print('Private probe configuration is valid.')
+        return
+    admin = json.loads(secret_file.read_text())['admin_token']
+    print(json.dumps(run_probe(base, admin, args.network_artifacts), indent=2))
 
 
-run = uuid.uuid4().hex
-worker = 'api-proof-' + run
-api('GET', '/healthz')
-api('GET', '/v1/admin/jobs', status=401)
-device = api('POST', '/v1/admin/workers', {'worker_id': worker}, admin, 201)['token']
-capability = 'proof.' + run
-api('POST', '/v1/workers/heartbeat', {'worker_id': worker, 'version_code': 0,
-    'version_name': 'HTTPS probe', 'capabilities': [capability], 'abis': [], 'state': 'test'}, device)
-api('POST', '/v1/workers/heartbeat', {'worker_id': 'another-worker'}, device, 401)
-job = {'idempotency_key': 'api-proof-' + run, 'operation': 'sha256',
-       'input': {'text': 'Durable HTTPS result'}, 'required_capabilities': [capability]}
-job_id = api('POST', '/v1/admin/jobs', job, admin, 201)['job_id']
-assert api('POST', '/v1/admin/jobs', job, admin, 201)['job_id'] == job_id
-changed = dict(job, input={'text': 'different payload'})
-api('POST', '/v1/admin/jobs', changed, admin, 409)
-claim = {'worker_id': worker, 'capabilities': [capability]}
-attempt = api('POST', '/v1/jobs/claim', claim, device)['job']
-assert attempt['id'] == job_id
-assert api('POST', '/v1/jobs/claim', claim, device)['job']['attempt_id'] == attempt['attempt_id']
-complete = {k: attempt[k] for k in ('attempt_id', 'fencing_token')}
-complete.update(worker_id=worker, status='succeeded',
-                result={'sha256': hashlib.sha256(job['input']['text'].encode()).hexdigest()})
-receipt = api('POST', '/v1/jobs/' + job_id + '/complete', complete, device)
-assert receipt['committed'] is True
-assert api('POST', '/v1/jobs/' + job_id + '/complete', complete, device) == receipt
-saved = api('GET', '/v1/admin/jobs/' + job_id, token=admin)
-assert saved['status'] == 'succeeded' and saved['result']['result'] == complete['result']
-api('POST', '/v1/jobs/claim', claim, device, 204)
-print(json.dumps({'passed': True, 'job_id': job_id, 'worker_id': worker,
-                  'checks': ['public TLS', 'admin authentication', 'worker isolation',
-                             'enqueue idempotence', 'payload conflict', 'repeat claim',
-                             'durable result', 'completion receipt replay']}, indent=2))
+if __name__ == '__main__':
+    main()

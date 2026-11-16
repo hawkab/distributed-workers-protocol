@@ -1,0 +1,16 @@
+{
+  "operation": "http.request",
+  "input": {
+    "effect_id": "download-v1",
+    "url": "https://example.org/source.zip",
+    "method": "GET",
+    "replay": "safe",
+    "response": {
+      "mode": "artifact",
+      "name": "source.zip"
+    }
+  },
+  "required_capabilities": [
+    "http.request"
+  ]
+}

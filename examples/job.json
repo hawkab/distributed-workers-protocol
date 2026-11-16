@@ -1,0 +1,9 @@
+{
+  "operation": "sha256",
+  "input": {
+    "text": "Portable computation"
+  },
+  "required_capabilities": [
+    "sha256"
+  ]
+}

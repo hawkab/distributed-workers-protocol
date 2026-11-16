@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Worker completion",
+  "type": "object",
+  "required": [
+    "worker_id",
+    "attempt_id",
+    "fencing_token",
+    "status",
+    "result"
+  ],
+  "properties": {
+    "worker_id": {
+      "type": "string"
+    },
+    "attempt_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "fencing_token": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "enum": [
+        "succeeded",
+        "failed"
+      ]
+    },
+    "result": {},
+    "error": {
+      "type": "object",
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

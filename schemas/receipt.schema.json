@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Durable completion receipt",
+  "type": "object",
+  "required": [
+    "job_id",
+    "attempt_id",
+    "committed"
+  ],
+  "properties": {
+    "job_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "attempt_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "committed": {
+      "type": "boolean"
+    },
+    "candidate_saved": {
+      "type": "boolean"
+    }
+  },
+  "anyOf": [
+    {
+      "properties": {
+        "committed": {
+          "const": true
+        }
+      }
+    },
+    {
+      "required": [
+        "candidate_saved"
+      ],
+      "properties": {
+        "candidate_saved": {
+          "const": true
+        }
+      }
+    }
+  ]
+}

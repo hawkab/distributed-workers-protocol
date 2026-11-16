@@ -16,5 +16,6 @@ release:
     - python3 -m unittest discover -s ci/tests -v
     - python3 ci/fleetci.py release --provider gitflic --tag "$CI_COMMIT_TAG"
   artifacts:
+    expire_in: never
     when: always
     paths: [dist/]

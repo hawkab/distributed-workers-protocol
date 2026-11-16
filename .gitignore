@@ -16,7 +16,6 @@ deployment.local.json
 *private*.der
 *.p12
 *.pfx
-
 bootstrap.json
 *.token
 *.secret
@@ -25,3 +24,8 @@ bootstrap.json
 .gnupg/
 *credentials*.json
 *secrets*.json
+!.env.example
+!.env.template
+secrets/
+id_rsa
+id_ed25519

@@ -24,7 +24,7 @@ if its Git endpoint does not accept the default token username.
 For Android also configure `FLEET_SIGNING_IMAGE`, `FLEET_PUBLIC_RELEASE_BASE`,
 and the protected `fleetsigning` runner. The unsigned Gradle/test job runs on
 `fleetci` without keys; its native artifact `dist/unsigned` feeds the signer.
-The signer does NOT run Gradle. Mount APK/manifest keys read-only at
+The signer does NOT run Gradle. V4 sidecars are disabled: PackageInstaller uses the signed APK directly; unsupported `.idsig` attachments are not produced. Mount APK/manifest keys read-only at
 `/run/fleet-signing`: `apk-release.jks`, `apk-password`, `release-signing.pem`;
 the existing APK alias is `fleet-worker`. Mount SDK at `/opt/android-sdk`, full
 JDK21 at `/opt/java21`; set `ANDROID_HOME` and `JAVA_HOME` accordingly.

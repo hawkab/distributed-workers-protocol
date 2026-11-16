@@ -942,7 +942,7 @@ def build(root, out, config, tag, commit):
             raise Failure("unsigned_apk_identity_mismatch")
         verify_public_apk(root, unsigned)
         apk = out / ANDROID_APK
-        run([signer, "sign", "--ks", private / "apk-release.jks", "--ks-key-alias", "fleet-worker", "--ks-pass",
+        run([signer, "sign", "--v4-signing-enabled", "false", "--ks", private / "apk-release.jks", "--ks-key-alias", "fleet-worker", "--ks-pass",
              "file:" + str(private / "apk-password"), "--out", apk,
              unsigned])
         canonical_base = "https://github.com/hawkab/distributed-workers-android/releases/download/{tag}"

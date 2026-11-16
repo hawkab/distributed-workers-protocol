@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Authenticated worker connection receipt",
+  "type": "object",
+  "required": [
+    "worker_id",
+    "update_poll_seconds",
+    "profile_schema"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "worker_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "update_poll_seconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "profile_schema": {
+      "const": 1
+    }
+  }
+}

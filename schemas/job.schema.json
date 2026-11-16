@@ -34,6 +34,9 @@
     },
     "network": {
       "$ref": "network-policy.schema.json"
+    },
+    "resource_requirements": {
+      "$ref": "resource-requirements.schema.json"
     }
   },
   "additionalProperties": false,

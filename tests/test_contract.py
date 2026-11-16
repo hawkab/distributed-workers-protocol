@@ -31,6 +31,33 @@ class ContractTests(unittest.TestCase):
             with self.subTest(name=name):
                 jsonschema.Draft202012Validator.check_schema(schema)
 
+    def test_profile_keeps_unknown_hardware_explicit(self):
+        value = {'schema': 1, 'capabilities': ['http.request'], 'resources': {
+            'cpu_logical_cores': 8, 'cpu_available_cores': 1.5,
+            'ram_available_bytes': None, 'gpu_status': 'unknown', 'gpus': []}}
+        validate('worker-profile', value)
+        for bad in ({'hostname': 'private-host'}, {'schema': 2},
+                    {'resources': {'ram_available_bytes': -1}},
+                    {'resources': {'gpus': [{'index': 0, 'model': 'private-hardware'}]}}):
+            with self.subTest(change=bad):
+                with self.assertRaises(jsonschema.ValidationError): validate('worker-profile', dict(value, **bad))
+
+    def test_profile_shared_memory_budget_is_descriptive_not_invented(self):
+        validate('worker-profile', {'schema': 1, 'capabilities': [], 'resources': {
+            'gpu_status': 'detected', 'gpus': [{'index': 0, 'unified_memory': True,
+                'compute_units': None, 'memory_available_bytes': 123456}]}})
+
+    def test_resource_constraints_accept_fractional_cpu_and_reject_typos(self):
+        job = {'operation': 'sha256', 'input': {'text': 'x'}, 'resource_requirements': {
+            'cpu_cores': 0.5, 'ram_bytes': 1024, 'disk_bytes': 0, 'gpu_memory_bytes': 4096}}
+        validate('job', job)
+        for change in ({'cpu_cores': -1}, {'ram_bytes': 1.5}, {'min_ram': 1024}):
+            with self.assertRaises(jsonschema.ValidationError): validate('job', dict(job, resource_requirements=change))
+
+    def test_connect_receipt_supports_new_uuid_and_existing_worker_identity(self):
+        for identity in ['legacy-worker', '00000000-0000-4000-8000-000000000001']:
+            validate('worker-connect-receipt', {'worker_id': identity, 'profile_schema': 1, 'update_poll_seconds': 900})
+
     def test_existing_compute_job_unchanged(self):
         validate('job', {'operation': 'javascript', 'input': {}, 'script': 'function run(input,resume){return resume;} '})
 
@@ -200,6 +227,19 @@ class ProbeTransportTests(unittest.TestCase):
         headers = {k.lower(): v for k, v in seen[0].header_items()}
         self.assertEqual(IDENTITY['attempt_id'], headers['x-attempt-id'])
         self.assertNotIn('x-fleet-attempt-id', headers)
+
+    def test_resource_header_is_ascii_base64url_and_roundtrips_unicode_capability(self):
+        import base64
+        seen = []
+        def opener(request, timeout):
+            seen.append(request)
+            return FakeResponse(b'{"worker_id":"assigned","profile_schema":1,"update_poll_seconds":900}', 200)
+        profile = {'schema': 1, 'capabilities': ['расчёт'], 'resources': {'gpu_status': 'unknown', 'gpus': []}}
+        probe.ApiClient('https://example.invalid', opener).call('POST', '/v1/workers/connect', {}, 'fixture', profile=profile)
+        headers = {k.lower(): v for k,v in seen[0].header_items()}
+        encoded = headers['x-worker-profile']; encoded.encode('ascii')
+        self.assertNotIn('=', encoded)
+        self.assertEqual(profile, json.loads(base64.urlsafe_b64decode(encoded + '=' * (-len(encoded) % 4))))
 
     def test_download_keeps_binary_exact(self):
         client = probe.ApiClient('https://example.invalid', lambda request, timeout: FakeResponse(b'\xff\x00', 200))

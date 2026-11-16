@@ -5,6 +5,70 @@ This is an additive version 1 contract. Existing `sha256`, `text.normalize`,
 advertise only implemented capabilities. A portable contract does not imply that
 every runtime, native application or GPU workload runs on every host.
 
+## Connection, resources and private worker views
+
+A worker receives a separate enrollment credential through private provisioning.
+An administrator creates it with `POST /v1/admin/enrollments {}` (201,
+`{enrollment_token}`). No administrator key is installed on a worker. This
+credential is unique per installation; sharing it shares the same participant.
+
+Before consuming work, send `POST /v1/workers/connect {}` with its Bearer
+credential and `X-Worker-Profile`. The header is unpadded base64url of compact
+UTF-8 JSON, following [the profile schema](schemas/worker-profile.schema.json):
+
+```json
+{"schema":1,"capabilities":["sha256","http.request","artifact.stream"],
+ "resources":{"cpu_logical_cores":8,"cpu_available_cores":2.5,
+ "ram_total_bytes":8589934592,"ram_available_bytes":4294967296,
+ "disk_total_bytes":107374182400,"disk_available_bytes":64424509440,
+ "gpu_status":"unknown","gpus":[]}}
+```
+
+The server atomically assigns an opaque UUID and returns
+`{worker_id,update_poll_seconds,profile_schema:1}`. The same credential on a retry
+or restart returns the same ID, including after a lost response. Keep using that
+Bearer credential; an ID is an identifier, never authorization. Persist the ID
+before delivering an outbox or claiming work. Existing enrolled device tokens
+keep their old IDs. An unexpected identity change with pending durable work
+must be reported without discarding that work.
+
+Refresh the header on worker heartbeats and claims. Capability arrays in the
+header and an optional legacy body must agree. The server records its own
+observation time; client clocks cannot make resource reports fresh. A resource
+constrained claim uses the profile from that exact RPC, not an old heartbeat.
+Legacy clients without a header can only claim jobs without hard requirements.
+
+Resource counts are actual available budgets: CPU affinity/quota, process and
+cgroup memory limits, and free space on the worker state filesystem apply.
+Unknown values are null/omitted; an unqueried GPU is not zero GPUs. Each detected
+GPU has an index, optional compute-unit count, total/available memory and a
+nullable `unified_memory` flag. A driver-reported compute unit is not inferred
+from a model name. Profiles contain no hostnames, serial numbers, credentials or
+hardware model strings.
+
+A job may include [resource_requirements](schemas/resource-requirements.schema.json):
+`{cpu_cores,ram_bytes,disk_bytes,gpu_count,gpu_compute_units,gpu_memory_bytes}`.
+Only positive requirements restrict admission. GPU compute units and memory are
+per device; either implies at least one GPU. Unknown resources cannot prove a
+positive requirement. Unified GPU memory must fit its reported allocation budget
+and the shared RAM budget together with CPU RAM; it must not be counted twice.
+No unrelated minimum or fixed resource safety multiplier is imposed.
+
+A device has two read views:
+
+- `GET /v1/workers/me`: its ID, profile, `server_observed_at` and update policy.
+- `GET /v1/jobs/current`: 200 `{job:...}` for its current live fenced assignment,
+  or 204. This read does not renew a lease or allocate another job.
+
+There is no device endpoint listing the shared backlog, other workers, completed
+history or another participant's messages. Device job/effect/artifact reads are
+checked against its current live assignment. Once that assignment expires or
+finishes, old local IDs and attempt tokens do not authorize reading it. A new
+assignee may recover that same job's artifacts, because the assignment is now
+its own. Global administration remains separately authenticated. Late own result,
+artifact and effect **writes** can still receive durable candidate receipts;
+this does not grant access to another attempt's response or messages.
+
 ## Jobs, leases and completion
 
 The configured HTTPS API base may contain a path prefix. Paths below are relative
@@ -251,8 +315,9 @@ Use the hash returned by begin. ACK:
 the reserved nonce; an old response cannot overwrite a newer safe execution.
 Record the response and sealed artifact IDs durably before returning to JS or
 completing the job. A late eligible owner response can be retained without
-committing the job. Reconcile uncertain finish RPCs through status/repeated
-identical finish, not another source call.
+committing the job. Reconcile uncertain finish RPCs through status while the assignment is live,
+or repeated identical finish writes after expiry, not another source call.
+A cached begin response also requires a live assignment.
 
 `GET /v1/jobs/{job}/effects/{effect_id}/status` returns
 `{state:started|uncertain|completed,effect_id,execution_id,request_sha256,response?,artifact_ids?}`.
@@ -278,9 +343,9 @@ free. Consumers stream bytes through the gateway API.
 
 Status/content GET and raw chunk PUT use device bearer plus `X-Worker-Id`,
 `X-Attempt-Id`, `X-Fencing-Token`. JSON routes carry identity in their bodies.
-The device content route accepts the originating creator attempt (including a
-stale creator) or the current live attempt of the **same job**. Cross-job reads
-are unauthorized (401); a stale noncreator reader loses its lease (409). A
+The device content route requires the current live fenced attempt of the
+**same job**. Cross-job reads are unauthorized (401); an expired or replaced
+attempt loses its read access (409), including the original creator. A
 missing/unsealed artifact is 404. This route recovers a sealed inline response
 after a process restart; it does not advertise streaming input request bodies.
 Admin content remains admin-only. Content is streamed byte-for-byte with SHA

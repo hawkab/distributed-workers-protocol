@@ -5,6 +5,7 @@ Creates a unique capability-scoped fixture. Never consumes TV or legacy jobs.
 The binary fixture is deliberately finite; production bodies use streaming APIs.
 """
 import argparse
+import base64
 import hashlib
 import json
 from pathlib import Path
@@ -19,13 +20,15 @@ class ApiClient:
         self.base, self.opener = base.rstrip('/'), opener
 
     def call(self, method, path, value=None, token=None, status=200, *,
-             raw=None, identity=None, binary=False):
+             raw=None, identity=None, binary=False, profile=None):
         if raw is not None and value is not None:
             raise ValueError('Choose JSON or raw body')
         data = raw if raw is not None else (json.dumps(value).encode() if value is not None else None)
         headers = {'Content-Type': 'application/octet-stream' if raw is not None else 'application/json'}
         if token:
             headers['Authorization'] = 'Bearer ' + token
+        if profile is not None:
+            headers['X-Worker-Profile'] = base64.urlsafe_b64encode(json.dumps(profile,separators=(',', ':'),ensure_ascii=False).encode()).decode().rstrip('=')
         if identity:
             headers.update({'X-Worker-Id': identity['worker_id'],
                             'X-Attempt-Id': identity['attempt_id'],
@@ -173,10 +176,79 @@ def run_probe(base, admin, network_artifacts=False, opener=urllib.request.urlope
     return {'passed': True, 'job_id': job_id, 'worker_id': worker, 'checks': checks}
 
 
+def run_profile_probe(base, admin, opener=urllib.request.urlopen):
+    """Two isolated actors; authenticated server IDs, admission and read isolation."""
+    api = ApiClient(base, opener).call
+    nonce = uuid.uuid4().hex
+    caps = ['profile-proof.' + nonce, 'other-profile-proof.' + nonce]
+    def profile(capability):
+        return {'schema': 1, 'capabilities': [capability], 'resources': {
+            'cpu_logical_cores': 4, 'cpu_available_cores': 1.5,
+            'ram_total_bytes': 4096, 'ram_available_bytes': 1000,
+            'disk_total_bytes': 8192, 'disk_available_bytes': 4000,
+            'gpu_status': 'detected', 'gpus': [{'index': 0, 'compute_units': 8,
+                'memory_total_bytes': 512, 'memory_available_bytes': 400,
+                'unified_memory': True}]}}
+    profiles = [profile(cap) for cap in caps]
+    tokens = [api('POST', '/v1/admin/enrollments', {}, admin, 201)['enrollment_token'] for _ in caps]
+    connected = [api('POST', '/v1/workers/connect', {}, token, profile=p) for token, p in zip(tokens, profiles)]
+    workers = [row['worker_id'] for row in connected]
+    assert workers[0] != workers[1]
+    uuid.UUID(workers[0]); uuid.UUID(workers[1])
+    for worker, token, p in zip(workers, tokens, profiles):
+        assert api('POST', '/v1/workers/connect', {}, token, profile=p)['worker_id'] == worker
+        me = api('GET', '/v1/workers/me', token=token)
+        assert me['worker_id'] == worker and me['profile']['schema'] == 1
+        assert me['profile']['resources']['cpu_available_cores'] == 1.5
+        api('GET', '/v1/jobs/current', token=token, status=204)
+        api('GET', '/v1/admin/workers', token=token, status=401)
+    own, foreign = workers; device, other = tokens; p = profiles[0]
+    hard = {'idempotency_key': 'profile-proof.' + nonce, 'operation': 'sha256',
+            'input': {'text': 'resource admission'}, 'required_capabilities': [caps[0]],
+            'resource_requirements': {'cpu_cores': 2, 'ram_bytes': 800,
+                                      'disk_bytes': 50, 'gpu_count': 1, 'gpu_memory_bytes': 300}}
+    job_id = api('POST', '/v1/admin/jobs', hard, admin, 201)['job_id']
+    claim = {'worker_id': own, 'capabilities': [caps[0]]}
+    api('POST', '/v1/jobs/claim', claim, device, 204)  # No fresh header cannot prove resources.
+    api('POST', '/v1/jobs/claim', claim, device, 204, profile=p)  # CPU budget too small.
+    p['resources']['cpu_available_cores'] = 3
+    api('POST', '/v1/jobs/claim', claim, device, 204, profile=p)  # Shared RAM 800+300 >1000.
+    p['resources']['ram_available_bytes'] = 2000
+    attempt = api('POST', '/v1/jobs/claim', claim, device, profile=p)['job']
+    assert attempt['id'] == job_id
+    assert api('GET', '/v1/jobs/current', token=device)['job']['attempt_id'] == attempt['attempt_id']
+    api('GET', '/v1/jobs/current?worker_id=' + own, token=other, status=204)
+    api('POST', '/v1/jobs/claim', claim, other, 401, profile=profiles[1])
+    api('POST', '/v1/jobs/claim', dict(claim, capabilities=['spoofed']), device, 400, profile=p)
+    api('GET', '/v1/admin/jobs/' + job_id, token=other, status=401)
+    identity = {key: attempt[key] for key in ('attempt_id', 'fencing_token')}; identity['worker_id'] = own
+    aid, extra = network_artifact_checks(api, job_id, identity, device, admin)
+    for path in ('/v1/artifacts/' + aid + '/status', '/v1/artifacts/' + aid + '/content',
+                 '/v1/jobs/' + job_id + '/effects/probe-never/status'):
+        api('GET', path, token=other, identity=identity, status=401)
+    completion = dict(identity, status='succeeded', result={'profile_admission': True}, artifact_ids=[aid])
+    assert api('POST', '/v1/jobs/' + job_id + '/complete', completion, device)['committed']
+    api('GET', '/v1/jobs/current', token=device, status=204)
+    for path in ('/v1/artifacts/' + aid + '/status', '/v1/artifacts/' + aid + '/content',
+                 '/v1/jobs/' + job_id + '/effects/probe-never/status'):
+        api('GET', path, token=device, identity=identity, status=(401, 409))
+    old_read = dict(identity, execution_id=str(uuid.uuid4()), request={
+        'effect_id': 'probe-never', 'url': 'https://example.invalid/fixture', 'method': 'POST',
+        'headers': {'Accept': '*/*'}, 'body_text': 'fixture', 'replay': 'never', 'response': {'mode': 'artifact'}})
+    api('POST', '/v1/jobs/' + job_id + '/effects/probe-never/begin', old_read, device, (401, 409))
+    assert api('POST', '/v1/jobs/' + job_id + '/complete', completion, device)['committed']
+    return {'passed': True, 'worker_ids': workers, 'job_id': job_id,
+            'checks': ['server UUID', 'connect replay identity', 'own profile only', 'no global device view',
+                       'fresh profile resource admission', 'fractional CPU', 'unified RAM accounting',
+                       'own live assignment', 'foreign worker ID rejected', 'header/body consistency',
+                       'foreign data rejected', 'completed data no longer readable', 'late receipt replay'] + extra}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', type=Path, default=Path(__file__).resolve().parents[1] / '.local/probe.local.json')
     parser.add_argument('--check', action='store_true', help='Validate settings without API requests')
+    parser.add_argument('--profiles', action='store_true', help='Also verify server IDs, resource admission and current-only data access')
     parser.add_argument('--network-artifacts', action='store_true', help='Also verify effect journal and binary artifact extension')
     args = parser.parse_args()
     try:
@@ -192,7 +264,7 @@ def main():
         print('Private probe configuration is valid.')
         return
     admin = json.loads(secret_file.read_text())['admin_token']
-    print(json.dumps(run_probe(base, admin, args.network_artifacts), indent=2))
+    print(json.dumps(run_profile_probe(base, admin) if args.profiles else run_probe(base, admin, args.network_artifacts), indent=2))
 
 
 if __name__ == '__main__':

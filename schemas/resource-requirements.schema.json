@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hard job resource requirements",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "ram_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "disk_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "gpu_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "gpu_compute_units": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "gpu_memory_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "cpu_cores": {
+      "type": "number",
+      "minimum": 0
+    }
+  }
+}

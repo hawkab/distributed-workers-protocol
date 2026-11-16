@@ -3,6 +3,7 @@
 Portable job, completion, durable effect journal and streaming artifact formats.
 
 - [Wire contract v1](PROTOCOL.md)
+- [Connection resource profile](schemas/worker-profile.schema.json)
 - [JSON Schemas](schemas/)
 - [Runtime choices and primary references](RUNTIMES.md)
 - [Compute example](examples/job.json)

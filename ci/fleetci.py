@@ -35,6 +35,7 @@ NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*$")
 HEX = re.compile(r"^[0-9a-f]{64}$")
 ANDROID_MANIFEST = "android-manifest.json"
 ANDROID_APK = "fleet-worker-android.apk"
+METADATA_ZIP = "release-metadata.zip"
 
 
 class Failure(Exception):
@@ -190,8 +191,9 @@ def multipart(field, path):
     name = Path(path).name
     if not NAME.fullmatch(name):
         raise Failure("invalid_asset_name")
+    media_type = "application/zip" if name.endswith(".zip") else "application/octet-stream"
     prefix = ("--" + boundary + "\r\nContent-Disposition: form-data; name=\"" + field +
-              "\"; filename=\"" + name + "\"\r\nContent-Type: application/octet-stream\r\n\r\n").encode()
+              "\"; filename=\"" + name + "\"\r\nContent-Type: " + media_type + "\r\n\r\n").encode()
     return prefix + Path(path).read_bytes() + ("\r\n--" + boundary + "--\r\n").encode(), \
         "multipart/form-data; boundary=" + boundary
 
@@ -433,7 +435,7 @@ def public_apk_url(base, tag):
 def artifact_entries(directory):
     return [{"name": p.name, "sha256": sha(p.read_bytes()), "size": p.stat().st_size}
             for p in sorted(Path(directory).iterdir()) if p.is_file() and
-            p.name not in ("release-record.json", "SHA256SUMS", "release-state.json") and not p.name.endswith(".partial")]
+            p.name not in ("release-record.json", "SHA256SUMS", "release-state.json", METADATA_ZIP) and not p.name.endswith(".partial")]
 
 
 def finish_record(directory, component, tag, commit):
@@ -445,6 +447,43 @@ def finish_record(directory, component, tag, commit):
     files = record["files"] + [{"name": "release-record.json", "sha256": sha(json_bytes(record))}]
     save(Path(directory) / "SHA256SUMS", "".join(x["sha256"] + "  " + x["name"] + "\n" for x in files).encode())
     return record
+
+
+def metadata_bundle_names(record):
+    names = {"SHA256SUMS", "release-record.json"}
+    files = record.get("files") if isinstance(record, dict) else None
+    if not isinstance(files, list) or not files:
+        raise Failure("metadata_record_invalid")
+    for item in files:
+        if not isinstance(item, dict) or not isinstance(item.get("name"), str) or not NAME.fullmatch(item["name"]) or item["name"] in names | {METADATA_ZIP, "release-state.json"}:
+            raise Failure("metadata_record_invalid")
+        if item["name"].endswith(".json"):
+            names.add(item["name"])
+    return names
+
+
+def create_metadata_bundle(directory, record):
+    directory = Path(directory)
+    entries = [(name, (directory / name).read_bytes(), 0o644) for name in metadata_bundle_names(record)]
+    archive(directory / METADATA_ZIP, entries, 0, zip_format=True)
+    return directory / METADATA_ZIP
+
+
+def read_metadata_bundle(raw):
+    """Read root-level metadata only; never extract an untrusted ZIP to disk."""
+    try:
+        with zipfile.ZipFile(io.BytesIO(raw)) as package:
+            entries = package.infolist()
+            names = [entry.filename for entry in entries]
+            if len(set(names)) != len(names) or any(not NAME.fullmatch(entry.filename) or entry.is_dir() or stat.S_ISLNK(entry.external_attr >> 16) or entry.flag_bits & 1 for entry in entries):
+                raise Failure("metadata_archive_entries_invalid")
+            values = {entry.filename: package.read(entry) for entry in entries}
+        record = json.loads(values["release-record.json"])
+        if set(values) != metadata_bundle_names(record):
+            raise Failure("metadata_archive_members_mismatch")
+        return values
+    except (OSError, ValueError, KeyError, TypeError, RuntimeError, NotImplementedError, zipfile.BadZipFile):
+        raise Failure("metadata_archive_invalid") from None
 
 
 def verify_record(directory, component, tag, commit):
@@ -571,12 +610,20 @@ def fetch_canonical(remote, root, out, config, tag, commit):
     if release.get("commitId") != commit or marker not in (release.get("description") or ""):
         raise Failure("canonical_release_identity_mismatch")
     assets = remote.assets(release)
-    records = [a for a in assets if a["name"] == "release-record.json"]
-    if not records:
-        raise Pending("canonical_artifacts_pending")
-    if len(records) != 1:
-        raise Failure("duplicate_release_record")
-    raw = remote.download(release, records[0])
+    bundles = [a for a in assets if a["name"] == METADATA_ZIP]
+    metadata = {}
+    if bundles:
+        if len(bundles) != 1:
+            raise Failure("duplicate_metadata_archive")
+        metadata = read_metadata_bundle(remote.download(release, bundles[0]))
+        raw = metadata["release-record.json"]
+    else:
+        records = [a for a in assets if a["name"] == "release-record.json"]
+        if not records:
+            raise Pending("canonical_artifacts_pending")
+        if len(records) != 1:
+            raise Failure("duplicate_release_record")
+        raw = remote.download(release, records[0])
     try:
         record = json.loads(raw)
         if (record["component"], record["tag"], record["commit"]) != (config["component"], tag, commit):
@@ -587,21 +634,24 @@ def fetch_canonical(remote, root, out, config, tag, commit):
             if not NAME.fullmatch(name) or not HEX.fullmatch(item["sha256"]):
                 raise Failure("canonical_record_invalid")
             found = [a for a in assets if a["name"] == name]
-            if not found:
-                raise Pending("canonical_artifacts_pending")
-            if len(found) != 1:
+            if len(found) > 1 or (name in metadata and found):
                 raise Failure("duplicate_canonical_asset")
+            if name not in metadata and not found:
+                raise Pending("canonical_artifacts_pending")
             target = out / name
             if not target.is_file() or sha(target.read_bytes()) != item["sha256"]:
-                data = remote.download(release, found[0])
+                data = metadata[name] if name in metadata else remote.download(release, found[0])
                 if sha(data) != item["sha256"] or len(data) != item["size"]:
                     raise Failure("canonical_checksum_mismatch")
                 save(target, data)
         save(out / "release-record.json", raw)
-        sums = [a for a in assets if a["name"] == "SHA256SUMS"]
-        if len(sums) != 1:
-            raise Pending("canonical_checksums_pending")
-        save(out / "SHA256SUMS", remote.download(release, sums[0]))
+        if metadata:
+            save(out / "SHA256SUMS", metadata["SHA256SUMS"])
+        else:
+            sums = [a for a in assets if a["name"] == "SHA256SUMS"]
+            if len(sums) != 1:
+                raise Pending("canonical_checksums_pending")
+            save(out / "SHA256SUMS", remote.download(release, sums[0]))
         verify_record(out, config["component"], tag, commit)
         if config["component"] == "worker-android":
             verify_android(root, out, config)
@@ -618,8 +668,13 @@ def publish(remote, out, record):
     description = release.get("description", release.get("body", "")) or ""
     if marker not in description or (release.get("commitId") and release["commitId"] != record["commit"]):
         raise Failure("existing_release_identity_conflict")
-    # Publish the record last: its presence declares the canonical bundle ready.
-    names = [x["name"] for x in record["files"]] + ["SHA256SUMS", "release-record.json"]
+    # GitFlic SaaS rejects text/plain and application/json release attachments.
+    # Publish their deterministic metadata archive last as the ready marker.
+    if remote.provider == "gitflic":
+        create_metadata_bundle(out, record)
+        names = [x["name"] for x in record["files"] if not x["name"].endswith(".json")] + [METADATA_ZIP]
+    else:
+        names = [x["name"] for x in record["files"]] + ["SHA256SUMS", "release-record.json"]
     for name in names:
         local = out / name
         expected = sha(local.read_bytes())
@@ -738,23 +793,45 @@ def android_unsigned(root, tag, commit):
                                            "sha256": sha(apk), "size": len(apk)}))
 
 
-def publish_channel(root, remote, record, config):
-    """Signed, monotonic channel commit, after anonymous asset verification."""
-    release = remote.release(record["tag"])
-    assets = {a["name"]: a for a in remote.assets(release)}
-    manifest = json.loads((root / "dist" / record["tag"] / ANDROID_MANIFEST).read_bytes())
-    apk_name = next(x["name"] for x in record["files"] if x["name"].endswith(".apk"))
-    names = {"manifest_url": ANDROID_MANIFEST, "apk_url": apk_name, "canonical_record_url": "release-record.json"}
-    channel = {"tag": record["tag"], "version_code": manifest["version_code"], "source_commit": record["commit"],
-               "sha256": manifest["sha256"]}
+def channel_documents(config, record, manifest, apk_url):
+    """Versioned public Git files keep Android JSON outside release MIME limits."""
+    base = "https://gitflic.ru/project/" + encoded(config["gitflic_owner"]) + "/" + encoded(config["gitflic_project"]) + "/blob/raw?"
+    names = {"manifest_url": ANDROID_MANIFEST, "canonical_record_url": "release-record.json"}
+    document = {"tag": record["tag"], "version_code": manifest["version_code"], "source_commit": record["commit"],
+                "sha256": manifest["sha256"], "apk_url": apk_url}
+    paths = {}
     for field, name in names.items():
-        url = assets[name].get("link")
-        if not url or not url.startswith("https://"):
-            raise Failure("public_gitflic_asset_link_missing")
-        public = HTTP("https://gitflic.ru").request("GET", url, accept="application/octet-stream")
-        if sha(public) != sha((root / "dist" / record["tag"] / name).read_bytes()):
-            raise Failure("anonymous_channel_asset_checksum")
-        channel[field] = url
+        relative = "releases/" + record["tag"] + "/" + name
+        paths[field] = relative
+        document[field] = base + urllib.parse.urlencode({"file": relative, "branch": "release-channel"})
+    return document, paths
+
+
+def verify_channel_metadata(channel, paths, files):
+    public = HTTP("https://gitflic.ru")
+    for field, relative in paths.items():
+        data = public.request("GET", channel[field], accept="application/octet-stream", missing=True)
+        if data is None:
+            raise Temporary("channel_metadata_not_indexed_yet")
+        if data != files[relative]:
+            raise Failure("anonymous_channel_metadata_checksum")
+
+
+def publish_channel(root, remote, record, config):
+    """Atomic signed channel promotion, after anonymous bundle/APK verification."""
+    public = GitFlicWeb(config["gitflic_owner"] + "/" + config["gitflic_project"])
+    out = root / "dist" / record["tag"]
+    fetch_canonical(public, root, out, config, record["tag"], record["commit"])
+    release = public.release(record["tag"])
+    if release is None:
+        raise Pending("public_channel_release_pending")
+    apk_name = next(x["name"] for x in record["files"] if x["name"].endswith(".apk"))
+    assets = [asset for asset in public.assets(release) if asset["name"] == apk_name]
+    if len(assets) != 1 or not assets[0].get("link", "").startswith("https://gitflic.ru/"):
+        raise Failure("public_gitflic_apk_link_missing")
+    manifest = json.loads((out / ANDROID_MANIFEST).read_bytes())
+    channel, paths = channel_documents(config, record, manifest, assets[0]["link"])
+    files = {relative: (out / relative.rsplit("/", 1)[1]).read_bytes() for relative in paths.values()}
     private = Path(required("FLEET_GPG_PRIVATE_KEY_FILE"))
     with tempfile.TemporaryDirectory(prefix="fleet-channel-") as d:
         d = Path(d)
@@ -766,7 +843,6 @@ def publish_channel(root, remote, record, config):
         fingerprints = [x.split(":")[9] for x in keys.splitlines() if x.startswith("fpr:")]
         if not fingerprints:
             raise Failure("ci_git_signing_key_missing")
-        # Isolated askpass, no credential-bearing URL or argv. Removed with tmpdir.
         ask = d / "askpass.py"
         save(ask, b'#!/usr/bin/env python3\nimport os,sys\nprint(os.environ.get("FLEET_GITFLIC_USERNAME","token") if "username" in sys.argv[1].lower() else os.environ["GITFLIC_TOKEN"])\n')
         ask.chmod(0o700)
@@ -793,11 +869,17 @@ def publish_channel(root, remote, record, config):
                     if previous.get("sha256") != channel["sha256"]:
                         raise Failure("channel_same_version_hash_conflict")
                     if previous == channel:
+                        verify_channel_metadata(channel, paths, files)
                         return
         else:
             run(["git", "checkout", "--orphan", "release-channel"], cwd=clone, env=env)
+        for relative, data in files.items():
+            target = clone / relative
+            if target.exists() and target.read_bytes() != data:
+                raise Failure("immutable_channel_metadata_conflict")
+            save(target, data)
         save(clone / "stable.json", json_bytes(channel))
-        run(["git", "add", "stable.json"], cwd=clone, env=env)
+        run(["git", "add", "--", "stable.json"] + sorted(files), cwd=clone, env=env)
         run(["git", "commit", "-S", "-m", "Release " + record["tag"]], cwd=clone, env=env)
         pushed = subprocess.run(["git", "push", address, "HEAD:refs/heads/release-channel"],
                                 cwd=clone, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -808,6 +890,7 @@ def publish_channel(root, remote, record, config):
             if any(word in error for word in ("non-fast-forward", "fetch first", "could not resolve", "connection", "timeout", "remote end hung up")):
                 raise Temporary("channel_push_reconcile")
             raise Failure("channel_push_failed")
+        verify_channel_metadata(channel, paths, files)
 
 
 def build(root, out, config, tag, commit):
@@ -957,7 +1040,7 @@ def main(argv=None):
             record = fetch_canonical(canonical, root, out, config, args.tag, commit)
         else:
             existing = remote.release(args.tag)
-            ready = existing and any(x["name"] == "release-record.json" for x in remote.assets(existing))
+            ready = existing and any(x["name"] in ("release-record.json", METADATA_ZIP) for x in remote.assets(existing))
             if ready:
                 record = fetch_canonical(remote, root, out, config, args.tag, commit)
             elif (out / "release-record.json").is_file():

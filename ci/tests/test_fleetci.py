@@ -16,7 +16,7 @@ spec.loader.exec_module(ci)
 
 
 class MemoryForge:
-    provider = "gitflic"
+    provider = "memory"
 
     def __init__(self):
         self.saved = None

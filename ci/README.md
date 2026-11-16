@@ -2,7 +2,9 @@
 
 Native entry points are `gitflic-ci.yaml`, `.github/workflows/release.yml`,
 and `.gitea/workflows/release.yml`. Version-tag pushes run their real platform
-jobs; GitHub/Gitea manual dispatch retries an existing tag. GitFlic's UI/API can
+jobs; GitHub/Gitea manual dispatch retries an existing tag. The ignored local
+publisher dispatches the actual GitFlic native API pipeline after tag push,
+deduplicated by tag, source commit and project identity. GitFlic's UI/API can
 rerun the pipeline for the same tag. No PR event receives publishing secrets.
 
 GitFlic builds the canonical bundle. Other forges discover its exact tag/commit
@@ -30,17 +32,26 @@ JDK21 at `/opt/java21`; set `ANDROID_HOME` and `JAVA_HOME` accordingly.
 imported into an ephemeral GNUPGHOME only for signed channel commits. Neither
 the user's GPG key nor SSH home is mounted. GitHub/Gitea receive no signing keys.
 
-`ci/version.json` for Android is `{ "name": "0.2.0", "code": 4 }`; a tag must
-match its name. Increment the positive monotonic code for later app releases;
+`ci/version.json` stores Android's version name and positive integer code; the
+tag must match the name. Increment the positive monotonic code for later app releases;
 never derive it from a platform-specific pipeline counter. The APK and signed
 manifest names are `fleet-worker-android.apk` and `android-manifest.json`.
 
-The signer publishes and anonymously downloads/verifies release files first,
-then pushes a signed `release-channel` commit with `stable.json` containing
-manifest_url, apk_url, canonical_record_url, tag, source_commit, version_code and
-sha256. A newer channel is never downgraded. The APK's signed canonical URL is
+GitFlic rejects text/plain and application/json release attachments. Canonical
+releases therefore upload binaries and archives first, then a deterministic
+`release-metadata.zip` containing `SHA256SUMS`, `release-record.json` and any
+signed Android manifest. Its presence is the ready marker. Mirrors read the ZIP
+without extracting paths, verify every declared hash/size and publish the original
+metadata files alongside identical artifact bytes on GitHub/Gitea.
+
+The signer anonymously verifies the public metadata archive and APK first, then
+pushes one signed `release-channel` commit containing `stable.json` and versioned
+raw manifest/record files under `releases/<tag>/`. It checks these public raw
+files after push and resumes verification if indexing is pending. The channel
+contains manifest_url, apk_url, canonical_record_url, tag, source_commit,
+version_code and sha256. A newer channel is never downgraded. The APK's signed canonical URL is
 not rewritten at a mirror. Set FLEET_PUBLIC_RELEASE_BASE to the immutable public
-Gitea release directory, e.g.
+GitHub release directory:
 https://github.com/hawkab/distributed-workers-android/releases/download/{tag}
 The builder expands the literal {tag}, then appends /fleet-worker-android.apk.
 It never adds the old /releases/android-stable suffix. The resolver's explicit
@@ -65,8 +76,9 @@ production host. Archive ordering, ownership and timestamps are deterministic.
 
 Publisher behavior: existing equal-hash assets are reused, changed assets and
 release identities are rejected, uncertain writes are reconciled before retry.
-No existing tag/asset is overwritten or deleted. release-record.json is uploaded
-last and binds component, exact source commit, version tag and all artifact hashes.
+No existing tag/asset is overwritten or deleted. The release record binds the
+component, exact source commit, version tag and all artifact hashes. GitFlic
+uploads its metadata ZIP last; GitHub/Gitea upload the raw record last.
 The unit suite covers idempotence, checksum rejection, no overwrite, uncertain
 upload recovery and a canonical release that remains pending beyond short retry
 budgets. Actual remote successful CI runs are required separately.

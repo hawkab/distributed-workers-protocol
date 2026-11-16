@@ -118,13 +118,19 @@ class ContractTests(unittest.TestCase):
         with self.assertRaises(jsonschema.ValidationError):
             validate('http-response', {'status': 200, 'url': 'https://example.org/a', 'headers': {}, 'body_error': {'code': 'invalid_json'}})
 
+    def test_control_envelope_fallback_preserves_computed_json_artifact(self):
+        validate('result-artifact', {'artifact': ARTIFACT, 'result_format': 'json',
+                 'body_error': {'code': 'control_budget_exceeded'}})
+        validate('http-response', dict(RESPONSE, body_error={'code': 'control_budget_exceeded'}))
+
     def test_inline_json_null_is_valid_body(self):
         response = {key: value for key, value in RESPONSE.items() if key != 'artifact'}
         validate('http-response', dict(response, body_json=None))
 
-    def test_no_mixed_inline_and_binary_body(self):
+    def test_optional_pinned_artifact_with_inline_and_no_two_inline_values(self):
+        validate('http-response', dict(RESPONSE, body_text='complete inline body'))
         with self.assertRaises(jsonschema.ValidationError):
-            validate('http-response', dict(RESPONSE, body_text='truncated prefix'))
+            validate('http-response', dict(RESPONSE, body_text='body', body_json={'body': True}))
 
     def test_4xx_is_valid_response(self):
         validate('http-response', dict(RESPONSE, status=403))

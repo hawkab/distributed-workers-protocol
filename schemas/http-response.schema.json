@@ -46,7 +46,8 @@
           "enum": [
             "inline_limit_exceeded",
             "invalid_utf8",
-            "invalid_json"
+            "invalid_json",
+            "control_budget_exceeded"
           ]
         }
       },
@@ -82,11 +83,6 @@
         "anyOf": [
           {
             "required": [
-              "artifact"
-            ]
-          },
-          {
-            "required": [
               "body_json"
             ]
           },
@@ -104,11 +100,6 @@
       ],
       "not": {
         "anyOf": [
-          {
-            "required": [
-              "artifact"
-            ]
-          },
           {
             "required": [
               "body_text"

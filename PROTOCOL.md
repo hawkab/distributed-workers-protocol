@@ -148,10 +148,39 @@ inspect the metadata and explicitly fail its business operation.
 }
 ```
 
-For inline success, `body_text` or `body_json` replaces `artifact`. Header names
+For inline success, `body_text` or `body_json` carries the value; an optional
+`artifact` may pin the complete source bytes for durable recovery. Header names
 are lower-case and values are arrays, preserving repeated fields. A fallback
 includes `artifact` and `body_error` together. Streams use bounded buffers and
 backpressure; binary bodies never pass through JS byte arrays or queue JSON.
+
+### Control-envelope capacity
+
+The gateway accepts a 16 MiB UTF-8 JSON control envelope. This bounds API control
+messages, not artifact bytes or the runtime of a job. Measure the complete
+serialized envelope, including identity, metadata, escaping and artifact IDs.
+A response whose raw bytes fit an inline budget may still exceed this envelope.
+If complete HTTP source bytes are already pinned, remove inline body fields and
+return their full artifact plus `body_error.code = control_budget_exceeded`.
+Never silently crop text, JSON fields or computed values to fit.
+
+An oversized general computation result is represented as:
+
+```json
+{"artifact":{"artifact_id":"opaque-id","name":"result.json","length":20000000,
+"sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+"media_type":"application/json"},"result_format":"json",
+"body_error":{"code":"control_budget_exceeded"}}
+```
+
+The artifact holds UTF-8 JSON of the original **result value**, not the completion
+envelope. Stream serialization/upload with bounded buffers, retain its SHA and
+durable upload offset, and include its ID in completion `artifact_ids`. A changed
+recomputed result uses a different content-bound upload key; it cannot append to
+old bytes. Lost chunk/seal acknowledgements reconcile through upload status.
+Metadata is cleared only after a matching durable completion acknowledgement.
+If metadata alone cannot fit the actual API capacity, retain the result artifact
+and report that concrete transport constraint instead of deleting data.
 
 ### Optional network policy and redirects
 

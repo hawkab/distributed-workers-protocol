@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Computed result represented by a durable JSON artifact",
+  "type": "object",
+  "required": [
+    "artifact",
+    "result_format",
+    "body_error"
+  ],
+  "properties": {
+    "artifact": {
+      "$ref": "artifact-ref.schema.json"
+    },
+    "result_format": {
+      "const": "json"
+    },
+    "body_error": {
+      "type": "object",
+      "required": [
+        "code"
+      ],
+      "properties": {
+        "code": {
+          "const": "control_budget_exceeded"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

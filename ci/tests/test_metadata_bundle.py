@@ -122,9 +122,29 @@ class PublicChannelMetadataTests(unittest.TestCase):
         for key, path in paths.items():
             uri = urllib.parse.urlsplit(channel[key])
             self.assertEqual(uri.hostname, 'gitflic.ru')
-            self.assertEqual(urllib.parse.parse_qs(uri.query), {'file': [path], 'branch': ['release-channel']})
+            self.assertEqual(urllib.parse.parse_qs(uri.query), {'file': [path], 'commit': ['release-channel']})
             self.assertTrue(path.startswith('releases/v1.0.0/'))
             self.assertNotIn('/api/', uri.path)
+
+    def test_nondefault_raw_ref_uses_live_gitflic_commit_selector_contract(self):
+        # The public GitFlic frontend's raw links use commit=. Live probes proved
+        # branch= ignored: main/default lacks these files and returns 404.
+        channel, paths = self.documents()
+        files = {path: path.encode() for path in paths.values()}
+        class GitFlicRaw:
+            def __init__(self, base):
+                pass
+            def request(self, method, address, **kwargs):
+                query = urllib.parse.parse_qs(urllib.parse.urlsplit(address).query)
+                if query.get('commit', ['main'])[0] != 'release-channel':
+                    return None
+                return files.get(query['file'][0])
+        with patch.object(ci, 'HTTP', GitFlicRaw):
+            ci.verify_channel_metadata(channel, paths, files)
+            wrong = {key: value.replace('&commit=', '&branch=') if isinstance(value, str) else value
+                     for key, value in channel.items()}
+            with self.assertRaisesRegex(ci.Temporary, 'channel_metadata_not_indexed_yet'):
+                ci.verify_channel_metadata(wrong, paths, files)
 
     def test_raw_public_files_must_match_and_pending_indexing_is_resumable(self):
         channel, paths = self.documents()

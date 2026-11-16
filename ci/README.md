@@ -47,7 +47,7 @@ metadata files alongside identical artifact bytes on GitHub/Gitea.
 The signer anonymously verifies the public metadata archive and APK first, then
 pushes one signed `release-channel` commit containing `stable.json` and versioned
 raw manifest/record files under `releases/<tag>/`. It checks these public raw
-files after push and resumes verification if indexing is pending. The channel
+files after push and resumes verification if indexing is pending. Raw URLs select the nondefault ref with `commit=release-channel`; GitFlic ignores `branch=` on this route. The channel
 contains manifest_url, apk_url, canonical_record_url, tag, source_commit,
 version_code and sha256. A newer channel is never downgraded. The APK's signed canonical URL is
 not rewritten at a mirror. Set FLEET_PUBLIC_RELEASE_BASE to the immutable public

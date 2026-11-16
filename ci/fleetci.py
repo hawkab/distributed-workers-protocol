@@ -803,7 +803,7 @@ def channel_documents(config, record, manifest, apk_url):
     for field, name in names.items():
         relative = "releases/" + record["tag"] + "/" + name
         paths[field] = relative
-        document[field] = base + urllib.parse.urlencode({"file": relative, "branch": "release-channel"})
+        document[field] = base + urllib.parse.urlencode({"file": relative, "commit": "release-channel"})
     return document, paths
 
 

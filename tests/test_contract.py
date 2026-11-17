@@ -61,6 +61,11 @@ class ContractTests(unittest.TestCase):
     def test_existing_compute_job_unchanged(self):
         validate('job', {'operation': 'javascript', 'input': {}, 'script': 'function run(input,resume){return resume;} '})
 
+    def test_heap_limited_inline_view_retains_full_artifact(self):
+        validate('http-response', dict(RESPONSE, body_error={'code': 'inline_memory_budget_exceeded'}))
+        with self.assertRaises(jsonschema.ValidationError):
+            validate('http-response', dict(RESPONSE, body_error={'code': 'inline_memory_budget_exceeded'}, body_text='partial'))
+
     def test_all_examples_validate(self):
         for path in (ROOT / 'examples').glob('*.json'):
             with self.subTest(path=path.name):

@@ -139,7 +139,10 @@ computation and blocked network calls.
 
 A Node adapter using Node `vm` is trusted-code execution, not a hostile-code
 sandbox. It advertises `trusted_javascript` and opts into `javascript` explicitly.
-PHP without a JS engine advertises `http.request`, not `javascript`. Native/GPU
+PHP without a JS engine advertises `http.request`, not `javascript`. The
+`runtime.php.v1` capability identifies the implemented PHP execution adapter;
+requiring it alongside an operation routes work to that backend during rollout
+or verification, without changing other workers' availability. Native/GPU
 operations require their own capabilities and host admission.
 
 ## HTTP operation and host function
@@ -194,7 +197,10 @@ fit the host's actual memory. Inline text is strict UTF-8; JSON is parsed only
 after complete UTF-8 validation. Overflow, invalid UTF-8 or invalid JSON returns
 the **full** sealed artifact with `body_error.code` respectively
 `inline_limit_exceeded`, `invalid_utf8` or `invalid_json`; no bytes are truncated
-or discarded. Both declarative and JS operations return that metadata normally.
+or discarded, and no source request is repeated for an inline view. If the executor's actual
+heap cannot hold the inline representation and its control serialization, it
+returns `inline_memory_budget_exceeded` with the same full artifact instead.
+Both declarative and JS operations return that metadata normally.
 A zero-byte inline budget accepts an empty text body and otherwise selects the
 full artifact fallback; an empty JSON body remains invalid JSON. The caller may
 inspect the metadata and explicitly fail its business operation.

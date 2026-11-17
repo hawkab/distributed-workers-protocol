@@ -45,6 +45,7 @@
         "code": {
           "enum": [
             "inline_limit_exceeded",
+            "inline_memory_budget_exceeded",
             "invalid_utf8",
             "invalid_json",
             "control_budget_exceeded"

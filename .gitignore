@@ -29,3 +29,10 @@ bootstrap.json
 secrets/
 id_rsa
 id_ed25519
+
+proxy-sources.txt
+proxy-sources.json
+proxy-sources.local.txt
+proxy-cache.json
+proxy.local.json
+*.proxy.local.*

@@ -1,0 +1,15 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema",
+ "title":"Private operator task proxy policy (not a job grant)",
+ "type":"object",
+ "properties":{
+  "mode":{"enum":["off","prefer","required"],"default":"off"},
+  "servers":{"type":"array","items":{"type":"object","properties":{"url":{"type":"string"},"host":{"type":"string"},"port":{"type":"integer","minimum":1,"maximum":65535},"scheme":{"enum":["http","https","socks4","socks4a","socks5","socks5h"]},"username":{"type":"string"},"password":{"type":"string"}},"anyOf":[{"required":["url"]},{"required":["host","port"]}],"additionalProperties":false}},
+  "sources_file":{"type":"string","minLength":1},
+  "cache_file":{"type":"string","minLength":1},
+  "required_country":{"type":"string","minLength":1},
+  "sources_refresh_seconds":{"type":"number","minimum":0}
+ },
+ "additionalProperties":false,
+ "description":"Keep all endpoint/auth/source/cache values private. External task networking only; control/artifact/update transports remain direct. Required mode has no direct fallback. Discovered candidates require operator-verified exit cache. Capability proxy.egress.v1 routes tasks requiring this policy. Transport support is backend-specific."
+}

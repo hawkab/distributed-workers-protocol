@@ -485,4 +485,35 @@ OS account's files and network; a child process is not a security sandbox.
 Nonempty `job.network` must be rejected because this backend cannot enforce the
 host HTTP allow-policy inside a native process. Real isolation requires an
 operator-provisioned OS/container boundary. Node is the initial backend; Android
-and PHP must not advertise this capability without an implemented native runner.
+must not advertise this capability without an implemented native runner. PHP
+may advertise it when its configured executable and process backend are usable.
+
+## Private task proxy routing (additive)
+
+`proxy.egress.v1` denotes an operator-configured required task egress pool with a
+supported proxy transport. Put this capability in `required_capabilities` when
+proxy use is a dispatch requirement. Proxy endpoints, source lists, health and
+credentials are private worker configuration, not job data or public profiles;
+see `schemas/proxy-config.schema.json`. Control, artifacts and updates bypass
+these task proxies and ambient proxy variables. TLS verification remains active.
+A required pool outage stays pending with health backoff, never direct egress.
+Source country labels are advisory; an external verifier/cache establishes actual
+exit geography. No country is hardcoded in the protocol.
+
+Native `command.run` remains the same `{program,payload}` operation on both Node
+and PHP hosts with a usable process backend. Programs explicitly opt in through
+private `proxy_env:true`. The trusted selected endpoint is provided via
+`FLEET_TASK_PROXY_URL`, `FLEET_TASK_PROXY_REQUIRED`, HTTP(S)/ALL_PROXY aliases and
+empty NO_PROXY, without inheriting worker credentials or parent environment.
+A private `proxy_failure_exit_codes` contract may identify proxy transport errors.
+Only `safe` programs automatically rotate/re-execute; every binary output remains
+a separate retained artifact. `never` uncertainty is preserved. Ordinary process
+or application failure must not be misclassified as proxy failure. Neither the
+protocol nor proxy environment is a sandbox for operator-provisioned native code.
+
+Caller request headers and idempotency-header aliases must not name
+`Proxy-Authorization` or `Proxy-Connection`; these are transport-managed fields.
+A completed remote effect remains recoverable during a proxy outage: status
+lookup identifies it, then begin validates the current normalized request hash
+before returning the cached response without any vendor call. An unavailable
+new required route never reserves a fresh external effect intent.

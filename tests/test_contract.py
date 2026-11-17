@@ -31,6 +31,15 @@ class ContractTests(unittest.TestCase):
             with self.subTest(name=name):
                 jsonschema.Draft202012Validator.check_schema(schema)
 
+    def test_private_proxy_configuration_and_transport_headers(self):
+        validate('proxy-config', {'mode': 'required', 'servers': [{'host': 'proxy.example.invalid', 'port': 1080, 'scheme': 'socks5h'}], 'required_country': 'RU'})
+        for key in ['Proxy-Authorization', 'proxy-connection']:
+            with self.subTest(header=key):
+                with self.assertRaises(jsonschema.ValidationError):
+                    validate('http-request', {'url': 'https://example.org', 'headers': {key: 'private'}})
+                with self.assertRaises(jsonschema.ValidationError):
+                    validate('http-request', {'url': 'https://example.org', 'replay': 'idempotent', 'idempotency_header': key, 'idempotency_key': 'private'})
+
     def test_profile_keeps_unknown_hardware_explicit(self):
         value = {'schema': 1, 'capabilities': ['http.request'], 'resources': {
             'cpu_logical_cores': 8, 'cpu_available_cores': 1.5,

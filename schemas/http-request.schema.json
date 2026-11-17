@@ -23,7 +23,10 @@
     "headers": {
       "type": "object",
       "propertyNames": {
-        "pattern": "^[!#$%&'*+.^_`|~0-9A-Za-z-]+$"
+        "pattern": "^[!#$%&'*+.^_`|~0-9A-Za-z-]+$",
+        "not": {
+          "pattern": "^[Pp][Rr][Oo][Xx][Yy]-([Aa][Uu][Tt][Hh][Oo][Rr][Ii][Zz][Aa][Tt][Ii][Oo][Nn]|[Cc][Oo][Nn][Nn][Ee][Cc][Tt][Ii][Oo][Nn])$"
+        }
       },
       "additionalProperties": {
         "type": "string",
@@ -95,7 +98,10 @@
     "idempotency_header": {
       "type": "string",
       "pattern": "^[!#$%&'*+.^_`|~0-9A-Za-z-]+$",
-      "default": "Idempotency-Key"
+      "default": "Idempotency-Key",
+      "not": {
+        "pattern": "^[Pp][Rr][Oo][Xx][Yy]-([Aa][Uu][Tt][Hh][Oo][Rr][Ii][Zz][Aa][Tt][Ii][Oo][Nn]|[Cc][Oo][Nn][Nn][Ee][Cc][Tt][Ii][Oo][Nn])$"
+      }
     },
     "redirect": {
       "enum": [

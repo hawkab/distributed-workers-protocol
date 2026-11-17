@@ -8,7 +8,7 @@ passed deployment acceptance.
 | --- | --- | --- |
 | Linux / Windows with Node | Native worker supervising a separate trusted JS process | Built-ins, `http.request`; `javascript` + `trusted_javascript` only after operator opt-in |
 | Android, including ARM32 | Existing interpreted Rhino inside APK; host supplies network/stream bridge | Built-ins, portable JS and HTTP once that version is implemented and tested |
-| PHP hosting without a JS engine | Request/cron-driven PHP adapter | Declarative `http.request`; no JS capability |
+| PHP hosting without a JS engine | Request/cron-driven PHP adapter | Declarative `http.request`; optional configured native `command.run`; no JS capability |
 | GPU / browser / vendor-native tools | Separate capability-specific adapter | Only its actual supported operations |
 
 The shared instruction is ES5.1 **source**, JSON input/checkpoint/result and a
@@ -95,3 +95,12 @@ uncertain-effect state. Partial bodies can only be combined with a common strong
 validator and verified ranges; a server may ignore Range and return a full body.
 Those facts motivate the durable journal and upload generations rather than
 blind retries. [HTTP semantics, RFC9110](https://www.rfc-editor.org/rfc/rfc9110.html#section-9.2.2)
+
+Optional PHP native commands use array-form `proc_open` without a shell,
+nonblocking pipes and an explicit private environment. Function availability and
+the executable hash determine advertisement; unavailable process functions do
+not disable unrelated compute/HTTP work. POSIX descendant cleanup uses checked
+process birth identities where available; otherwise only the direct process can
+be forcibly terminated. The configured program must supervise its dependencies.
+[PHP process execution](https://www.php.net/manual/en/function.proc-open.php),
+[PHP process termination](https://www.php.net/manual/en/function.proc-terminate.php).

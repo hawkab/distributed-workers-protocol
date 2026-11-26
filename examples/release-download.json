@@ -1,0 +1,16 @@
+{
+  "operation": "http.request",
+  "input": {
+    "effect_id": "public-release-download-v1",
+    "url": "https://github.com/hawkab/distributed-workers-portable/releases/download/v0.8.4/fleet-worker-portable.zip",
+    "method": "GET",
+    "replay": "safe",
+    "response": {"mode": "artifact", "name": "runtime.zip"}
+  },
+  "required_capabilities": ["http.request", "artifact.stream"],
+  "network": {
+    "origins": ["https://github.com", "https://release-assets.githubusercontent.com"],
+    "methods": ["GET"],
+    "response_modes": ["artifact"]
+  }
+}

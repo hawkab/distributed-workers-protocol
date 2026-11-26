@@ -1,0 +1,19 @@
+{
+  "sha256": {
+    "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+  },
+  "word-count": {
+    "words": 50000,
+    "counts": {
+      "alpha": 20000,
+      "beta": 20000,
+      "gamma": 10000
+    }
+  },
+  "release-download": {
+    "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7"
+  },
+  "mirror-download": {
+    "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7"
+  }
+}

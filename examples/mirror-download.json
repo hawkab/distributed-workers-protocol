@@ -1,0 +1,28 @@
+{
+  "operation": "http.request",
+  "input": {
+    "effect_id": "public-release-download-v1",
+    "url": "https://gitflic.ru/project/distributed-workers/worker-portable/release/d977df03-e935-4c87-83e9-6567468c44b6/5e63557d-43ac-42d8-b535-f23da298e9fa/download",
+    "method": "GET",
+    "replay": "safe",
+    "response": {
+      "mode": "artifact",
+      "name": "runtime.zip"
+    }
+  },
+  "required_capabilities": [
+    "http.request",
+    "artifact.stream"
+  ],
+  "network": {
+    "origins": [
+      "https://gitflic.ru"
+    ],
+    "methods": [
+      "GET"
+    ],
+    "response_modes": [
+      "artifact"
+    ]
+  }
+}

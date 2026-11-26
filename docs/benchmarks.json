@@ -1,0 +1,1348 @@
+{
+  "schema": 1,
+  "generated_at_utc": "2026-11-26T21:15:13.706539+00:00",
+  "method": {
+    "queue": "Existing dedicated worker queue; normal application load retained. Trials serial within each private capability-scoped pool.",
+    "clock": "Gateway PostgreSQL timestamps inside state/result transactions; queue and server total do not separately measure commit fsync latency.",
+    "execution_ms": "Canonical result-row timestamp minus canonical attempt start: operation and result delivery. Commit is verified by canonical readback; this is not an isolated fsync measurement.",
+    "source_bytes": 86195,
+    "source_sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+    "verification": "Every successful computed value or downloaded artifact was independently checked. IDs, capabilities, credentials, hostnames and endpoints are omitted.",
+    "interruptions": "Stalled auxiliary source-route trials were explicitly closed. All completed, failed, interrupted and unstarted observations are retained; no timeout is reported as a completed runtime.",
+    "priority": 100,
+    "sample_accounting": "Five trials planned per platform/scenario. Completed, cancelled and unstarted trials are all included; successful-only timing summaries are explicitly labelled."
+  },
+  "fixture_sha256": {
+    "sha256": "09c3bb9b2b83808770a826e21201e02139227289710333407d524208459d45ea",
+    "release-download": "759fa6daa256c6bd6153ef2f8390bf858c47adacf73f55234239e7626087aa19",
+    "word-count": "667422a68c46a60ef620d3fa6fe4e138fcf0a47f7100bd862a717e93f65cbd8d",
+    "mirror-download": "66f00998b4192c77c23f076026c4310bf61cc790525f1b2d5f902a28afe9dfd8"
+  },
+  "cohorts": [
+    {
+      "platform": "node-linux",
+      "scenario": "sha256",
+      "requested_trials": 5,
+      "started_trials": 5,
+      "successful_trials": 5,
+      "failed_trials": 0,
+      "interrupted_trials": 0,
+      "pending_trials": 0,
+      "not_started_trials": 0,
+      "complete": true,
+      "samples": [
+        {
+          "trial": 1,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:07.246427+00:00",
+          "receipt_sha256": "9b00f7abf4d9daec87b2a20ada53ce037bd67e236c1687c4f8b513c80add2f65",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:17.78749+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 10491.67,
+          "execution_to_result_ms": 48.153,
+          "server_total_ms": 10541.063,
+          "observed_total_ms": 11537.493,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        },
+        {
+          "trial": 2,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:19.505182+00:00",
+          "receipt_sha256": "001f3b07b608b0014f0c60856b82b9046f9e525022a200b646266b3cb9201a30",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:20.833969+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 125.912,
+          "execution_to_result_ms": 1201.89,
+          "server_total_ms": 1328.787,
+          "observed_total_ms": 2882.775,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        },
+        {
+          "trial": 3,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:23.031237+00:00",
+          "receipt_sha256": "a805935d99264fb3402f9ef9de170f18da4c7a553af65839e56348b6d00d3f90",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:23.841766+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 14.531,
+          "execution_to_result_ms": 795.208,
+          "server_total_ms": 810.529,
+          "observed_total_ms": 1912.105,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        },
+        {
+          "trial": 4,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:25.605011+00:00",
+          "receipt_sha256": "a4f0d6752b67ab567d6972f631a403e811ec9ff67c933e45a73b0f24f488e51d",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:26.124817+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 31.936,
+          "execution_to_result_ms": 486.697,
+          "server_total_ms": 519.806,
+          "observed_total_ms": 2216.728,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        },
+        {
+          "trial": 5,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:28.370109+00:00",
+          "receipt_sha256": "ea6bf16a4334a0470cf042fcd0b1c003654efcc96cb466aef916e45c5df1245d",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:29.523877+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 24.004,
+          "execution_to_result_ms": 1128.538,
+          "server_total_ms": 1153.768,
+          "observed_total_ms": 2115.372,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        }
+      ],
+      "successful_time_summary": {
+        "queue_ms": {
+          "median": 31.936,
+          "min": 14.531,
+          "max": 10491.67
+        },
+        "execution_to_result_ms": {
+          "median": 795.208,
+          "min": 48.153,
+          "max": 1201.89
+        },
+        "server_total_ms": {
+          "median": 1153.768,
+          "min": 519.806,
+          "max": 10541.063
+        }
+      }
+    },
+    {
+      "platform": "node-linux",
+      "scenario": "release-download",
+      "requested_trials": 5,
+      "started_trials": 3,
+      "successful_trials": 2,
+      "failed_trials": 0,
+      "interrupted_trials": 1,
+      "pending_trials": 0,
+      "not_started_trials": 2,
+      "complete": false,
+      "samples": [
+        {
+          "trial": 1,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:30.912386+00:00",
+          "receipt_sha256": "00c1379b38d71bcfbe5f3530f1dd20fcfb1334e9261e077a6396a673c0b44e61",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:58:31.434621+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 17.824,
+          "execution_to_result_ms": 180497.248,
+          "server_total_ms": 180522.235,
+          "observed_total_ms": 181987.601,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 882.656
+        },
+        {
+          "trial": 2,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:58:34.290654+00:00",
+          "receipt_sha256": "735994dfeeee42baa7c326ac9b49fcb6bd1fa4376df578291e62db7d807d5474",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T21:01:30.494783+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 31.855,
+          "execution_to_result_ms": 176161.445,
+          "server_total_ms": 176204.129,
+          "observed_total_ms": 178201.587,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 1351.513
+        },
+        {
+          "trial": 3,
+          "status": "cancelled",
+          "submitted_at": "2026-11-26T21:01:33.286065+00:00",
+          "receipt_sha256": "e185368ce4f1c9db25fc375d4586ad0a43c97d79143545864a398a2d1db40b5e",
+          "outcome": "interrupted",
+          "passed": false,
+          "finished_at": "2026-11-26T21:03:04.121029+00:00",
+          "reason": "Auxiliary source-route experiment was closed by the operator; not a completed execution-time sample."
+        }
+      ],
+      "successful_time_summary": {
+        "queue_ms": {
+          "median": 24.8395,
+          "min": 17.824,
+          "max": 31.855
+        },
+        "execution_to_result_ms": {
+          "median": 178329.34649999999,
+          "min": 176161.445,
+          "max": 180497.248
+        },
+        "server_total_ms": {
+          "median": 178363.18199999997,
+          "min": 176204.129,
+          "max": 180522.235
+        }
+      }
+    },
+    {
+      "platform": "php-shared-linux",
+      "scenario": "sha256",
+      "requested_trials": 5,
+      "started_trials": 5,
+      "successful_trials": 5,
+      "failed_trials": 0,
+      "interrupted_trials": 0,
+      "pending_trials": 0,
+      "not_started_trials": 0,
+      "complete": true,
+      "samples": [
+        {
+          "trial": 1,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:07.248008+00:00",
+          "receipt_sha256": "e6ec5ca11896d48a652f8c6c12a36afde440bde14241aaba6d15609515cc5b2f",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:08.43856+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 180.844,
+          "execution_to_result_ms": 1008.31,
+          "server_total_ms": 1190.552,
+          "observed_total_ms": 2471.301,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        },
+        {
+          "trial": 2,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:10.060478+00:00",
+          "receipt_sha256": "93e40bb7310141444601711a7b8bdc9e533713a4b39e9c84b7075fe8e881f664",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:13.025985+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 2186.718,
+          "execution_to_result_ms": 777.95,
+          "server_total_ms": 2965.507,
+          "observed_total_ms": 3972.385,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        },
+        {
+          "trial": 3,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:14.703948+00:00",
+          "receipt_sha256": "c0dce4d3a4e581928a768afbedbbef9012f78770bcd36aacd5d1ded03ccf3e77",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:16.888513+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 1455.671,
+          "execution_to_result_ms": 727.567,
+          "server_total_ms": 2184.565,
+          "observed_total_ms": 3237.054,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        },
+        {
+          "trial": 4,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:18.194609+00:00",
+          "receipt_sha256": "0cc23054d8d2529b3fa93262cc3fecbdca249607aba9285d6bfb13702b714f6d",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:19.684284+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 452.788,
+          "execution_to_result_ms": 1035.898,
+          "server_total_ms": 1489.675,
+          "observed_total_ms": 2899.237,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        },
+        {
+          "trial": 5,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:22.161539+00:00",
+          "receipt_sha256": "e8f5d80b1927bace738e99bacdbebafdd8efd51f3358466b20089f7c72120d69",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:24.779524+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 1717.756,
+          "execution_to_result_ms": 899.187,
+          "server_total_ms": 2617.985,
+          "observed_total_ms": 4034.667,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        }
+      ],
+      "successful_time_summary": {
+        "queue_ms": {
+          "median": 1455.671,
+          "min": 180.844,
+          "max": 2186.718
+        },
+        "execution_to_result_ms": {
+          "median": 899.187,
+          "min": 727.567,
+          "max": 1035.898
+        },
+        "server_total_ms": {
+          "median": 2184.565,
+          "min": 1190.552,
+          "max": 2965.507
+        }
+      }
+    },
+    {
+      "platform": "php-shared-linux",
+      "scenario": "release-download",
+      "requested_trials": 5,
+      "started_trials": 1,
+      "successful_trials": 0,
+      "failed_trials": 0,
+      "interrupted_trials": 1,
+      "pending_trials": 0,
+      "not_started_trials": 4,
+      "complete": false,
+      "samples": [
+        {
+          "trial": 1,
+          "status": "cancelled",
+          "submitted_at": "2026-11-26T20:55:26.761776+00:00",
+          "receipt_sha256": "e25f62b3a553e63569436b3217cf10d44cadd39cd7a652fe5762cb454fefa948",
+          "outcome": "interrupted",
+          "passed": false,
+          "finished_at": "2026-11-26T21:03:18.934227+00:00",
+          "reason": "Auxiliary source-route experiment was closed by the operator; not a completed execution-time sample."
+        }
+      ],
+      "successful_time_summary": {}
+    },
+    {
+      "platform": "php-routeros-arm64",
+      "scenario": "sha256",
+      "requested_trials": 5,
+      "started_trials": 5,
+      "successful_trials": 5,
+      "failed_trials": 0,
+      "interrupted_trials": 0,
+      "pending_trials": 0,
+      "not_started_trials": 0,
+      "complete": true,
+      "samples": [
+        {
+          "trial": 1,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:07.274794+00:00",
+          "receipt_sha256": "df9167b04a4fd2410c4f697db8dd2f4d17d5b658fbbffdac10a7f9470deb8e24",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:08.449309+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 212.964,
+          "execution_to_result_ms": 959.9,
+          "server_total_ms": 1174.515,
+          "observed_total_ms": 2829.52,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        },
+        {
+          "trial": 2,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:10.779569+00:00",
+          "receipt_sha256": "d5e4c5f17a97c7c8823e1a50818677adba13592c1b3594f363c517a63040017a",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:11.883431+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 271.94,
+          "execution_to_result_ms": 828.824,
+          "server_total_ms": 1103.862,
+          "observed_total_ms": 2286.636,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        },
+        {
+          "trial": 3,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:13.58575+00:00",
+          "receipt_sha256": "0d845dc490f867e4d532ff3d157dd8e77183c55b984b459256642f580f0abb9c",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:16.885759+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 2370.785,
+          "execution_to_result_ms": 928.066,
+          "server_total_ms": 3300.009,
+          "observed_total_ms": 4542.882,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        },
+        {
+          "trial": 4,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:18.934326+00:00",
+          "receipt_sha256": "4db8e7135d592fd25245fb0c0341682cd854646c7d73e47e476aaaeecc4c8a89",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:20.200698+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 294.48,
+          "execution_to_result_ms": 970.259,
+          "server_total_ms": 1266.372,
+          "observed_total_ms": 3247.556,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        },
+        {
+          "trial": 5,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:22.854755+00:00",
+          "receipt_sha256": "7e09d0b4dcbbb231383e02ae54d2e756b29b17c0a5572e03b01136d9a00a691e",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:24.378113+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 417.71,
+          "execution_to_result_ms": 1103.185,
+          "server_total_ms": 1523.358,
+          "observed_total_ms": 2707.79,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        }
+      ],
+      "successful_time_summary": {
+        "queue_ms": {
+          "median": 294.48,
+          "min": 212.964,
+          "max": 2370.785
+        },
+        "execution_to_result_ms": {
+          "median": 959.9,
+          "min": 828.824,
+          "max": 1103.185
+        },
+        "server_total_ms": {
+          "median": 1266.372,
+          "min": 1103.862,
+          "max": 3300.009
+        }
+      }
+    },
+    {
+      "platform": "php-routeros-arm64",
+      "scenario": "release-download",
+      "requested_trials": 5,
+      "started_trials": 4,
+      "successful_trials": 3,
+      "failed_trials": 0,
+      "interrupted_trials": 1,
+      "pending_trials": 0,
+      "not_started_trials": 1,
+      "complete": false,
+      "samples": [
+        {
+          "trial": 1,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:26.093054+00:00",
+          "receipt_sha256": "eacee47153c8c11968234af435bde759f86a0c3bfe25d6cf33bf0c388f36fe3d",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T21:00:11.320347+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 1590.988,
+          "execution_to_result_ms": 283602.746,
+          "server_total_ms": 285227.293,
+          "observed_total_ms": 288232.792,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 1150.199
+        },
+        {
+          "trial": 2,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T21:00:18.297285+00:00",
+          "receipt_sha256": "ef6e2f6644b146d1d2de3371c8ebcff556da0d324a802dac4a85f70396520050",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T21:00:53.960221+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 5131.06,
+          "execution_to_result_ms": 30522.178,
+          "server_total_ms": 35662.936,
+          "observed_total_ms": 37728.781,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 1080.734
+        },
+        {
+          "trial": 3,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T21:00:57.101816+00:00",
+          "receipt_sha256": "78991cf3db7cc5d3568959288b7c367dad0f0b598fd2b3ae86fc59d50e788a95",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T21:01:34.804912+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 3647.029,
+          "execution_to_result_ms": 34046.082,
+          "server_total_ms": 37703.096,
+          "observed_total_ms": 39151.512,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 990.956
+        },
+        {
+          "trial": 4,
+          "status": "cancelled",
+          "submitted_at": "2026-11-26T21:01:37.371373+00:00",
+          "receipt_sha256": "894c933c15b52fa414c60a07fccc905793e81dd4c00dc0514bc879f4073aeaf6",
+          "outcome": "interrupted",
+          "passed": false,
+          "finished_at": "2026-11-26T21:03:18.937856+00:00",
+          "reason": "Auxiliary source-route experiment was closed by the operator; not a completed execution-time sample."
+        }
+      ],
+      "successful_time_summary": {
+        "queue_ms": {
+          "median": 3647.029,
+          "min": 1590.988,
+          "max": 5131.06
+        },
+        "execution_to_result_ms": {
+          "median": 34046.082,
+          "min": 30522.178,
+          "max": 283602.746
+        },
+        "server_total_ms": {
+          "median": 37703.096,
+          "min": 35662.936,
+          "max": 285227.293
+        }
+      }
+    },
+    {
+      "platform": "android-arm64",
+      "scenario": "sha256",
+      "requested_trials": 5,
+      "started_trials": 5,
+      "successful_trials": 5,
+      "failed_trials": 0,
+      "interrupted_trials": 0,
+      "pending_trials": 0,
+      "not_started_trials": 0,
+      "complete": true,
+      "samples": [
+        {
+          "trial": 1,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:07.286322+00:00",
+          "receipt_sha256": "4622eea051c7aa624ceafbe3c77b22598ccdf6555c6e2119d7bfd0143649a09b",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:09.497963+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 337.426,
+          "execution_to_result_ms": 1872.849,
+          "server_total_ms": 2211.641,
+          "observed_total_ms": 3395.649,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        },
+        {
+          "trial": 2,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:11.394785+00:00",
+          "receipt_sha256": "8f5235e8d8fac0fa22c952458020522ebf064f4072e2376589c95f21655f54ee",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:13.469036+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 41.935,
+          "execution_to_result_ms": 2031.524,
+          "server_total_ms": 2074.251,
+          "observed_total_ms": 3453.056,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        },
+        {
+          "trial": 3,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:15.40582+00:00",
+          "receipt_sha256": "5ac9e1856ac0848bd59a6f17ba8681520e28d095f369b68f2466e84703ade98c",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:16.904838+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 274.732,
+          "execution_to_result_ms": 1222.83,
+          "server_total_ms": 1499.018,
+          "observed_total_ms": 2640.34,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        },
+        {
+          "trial": 4,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:18.19376+00:00",
+          "receipt_sha256": "3ac1e30b4ab455d11320e388088262ecbd3da17a7197ca881da7a365cde10f82",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:21.183665+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 380.885,
+          "execution_to_result_ms": 2606.359,
+          "server_total_ms": 2989.905,
+          "observed_total_ms": 4120.981,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        },
+        {
+          "trial": 5,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:23.035417+00:00",
+          "receipt_sha256": "1f2831d5f5c76d1263c6a4725a47af7f48c2cd8c1d9a8bd29556288f7d0554d4",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:24.7913+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 10.427,
+          "execution_to_result_ms": 1744.348,
+          "server_total_ms": 1755.883,
+          "observed_total_ms": 3034.902,
+          "value": {
+            "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+          }
+        }
+      ],
+      "successful_time_summary": {
+        "queue_ms": {
+          "median": 274.732,
+          "min": 10.427,
+          "max": 380.885
+        },
+        "execution_to_result_ms": {
+          "median": 1872.849,
+          "min": 1222.83,
+          "max": 2606.359
+        },
+        "server_total_ms": {
+          "median": 2074.251,
+          "min": 1499.018,
+          "max": 2989.905
+        }
+      }
+    },
+    {
+      "platform": "android-arm64",
+      "scenario": "release-download",
+      "requested_trials": 5,
+      "started_trials": 5,
+      "successful_trials": 5,
+      "failed_trials": 0,
+      "interrupted_trials": 0,
+      "pending_trials": 0,
+      "not_started_trials": 0,
+      "complete": true,
+      "samples": [
+        {
+          "trial": 1,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:26.75678+00:00",
+          "receipt_sha256": "60d3a01e65549a9d64253cdf05458366ca04a10287b1cb9243bf1aede63f13a0",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:33.80493+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 410.263,
+          "execution_to_result_ms": 6631.562,
+          "server_total_ms": 7048.15,
+          "observed_total_ms": 8639.868,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 877.409
+        },
+        {
+          "trial": 2,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:35.585441+00:00",
+          "receipt_sha256": "f808ca80eb4dd200cd619bcc1f82f09aeff20e58ed201119a764f0780ce8d4c6",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:38.681755+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 59.461,
+          "execution_to_result_ms": 3033.569,
+          "server_total_ms": 3096.314,
+          "observed_total_ms": 3725.829,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 844.127
+        },
+        {
+          "trial": 3,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:39.846231+00:00",
+          "receipt_sha256": "f57d14fbee1754a7f2275d609847e5062c1806b9fe293fece06c22ea1b19133b",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:44.655907+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 24.55,
+          "execution_to_result_ms": 4782.244,
+          "server_total_ms": 4809.676,
+          "observed_total_ms": 5394.597,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 844.204
+        },
+        {
+          "trial": 4,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:45.740777+00:00",
+          "receipt_sha256": "fd50d78677b01af06f39d60095aa7f9d013e3bcb9b6a9244c98a038225e6c32d",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:48.929124+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 65.738,
+          "execution_to_result_ms": 3120.015,
+          "server_total_ms": 3188.347,
+          "observed_total_ms": 3849.225,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 960.78
+        },
+        {
+          "trial": 5,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:55:50.332684+00:00",
+          "receipt_sha256": "203d097d4bd1d00eb41341ea11c69873e9325f9f9193bfa603352e155ce24e05",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:55:59.897575+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 290.802,
+          "execution_to_result_ms": 9267.155,
+          "server_total_ms": 9564.891,
+          "observed_total_ms": 10752.228,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 916.079
+        }
+      ],
+      "successful_time_summary": {
+        "queue_ms": {
+          "median": 65.738,
+          "min": 24.55,
+          "max": 410.263
+        },
+        "execution_to_result_ms": {
+          "median": 4782.244,
+          "min": 3033.569,
+          "max": 9267.155
+        },
+        "server_total_ms": {
+          "median": 4809.676,
+          "min": 3096.314,
+          "max": 9564.891
+        }
+      }
+    },
+    {
+      "platform": "android-arm64",
+      "scenario": "word-count",
+      "requested_trials": 5,
+      "started_trials": 5,
+      "successful_trials": 5,
+      "failed_trials": 0,
+      "interrupted_trials": 0,
+      "pending_trials": 0,
+      "not_started_trials": 0,
+      "complete": true,
+      "samples": [
+        {
+          "trial": 1,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:56:03.367077+00:00",
+          "receipt_sha256": "331ed502b7fd03b74f9f673d53ca7478395c83ab25e10f4b17bdc39f59dbd0e8",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:56:06.561003+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 314.635,
+          "execution_to_result_ms": 2874.506,
+          "server_total_ms": 3193.926,
+          "observed_total_ms": 5196.817,
+          "value": {
+            "words": 50000,
+            "counts": {
+              "beta": 20000,
+              "alpha": 20000,
+              "gamma": 10000
+            }
+          }
+        },
+        {
+          "trial": 2,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:56:09.110677+00:00",
+          "receipt_sha256": "74594221eefa3376655e60dc190cd5ee7fae45c114771aa91e44c06ccb2fb393",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:56:30.415325+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 18127.02,
+          "execution_to_result_ms": 3171.955,
+          "server_total_ms": 21304.648,
+          "observed_total_ms": 22833.055,
+          "value": {
+            "words": 50000,
+            "counts": {
+              "beta": 20000,
+              "alpha": 20000,
+              "gamma": 10000
+            }
+          }
+        },
+        {
+          "trial": 3,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:56:32.989099+00:00",
+          "receipt_sha256": "d495dd467896692fba2ff87d618c9964593f8a951d0028778c0b03157eee3b1d",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:56:35.887981+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 9.689,
+          "execution_to_result_ms": 2887.594,
+          "server_total_ms": 2898.882,
+          "observed_total_ms": 4832.66,
+          "value": {
+            "words": 50000,
+            "counts": {
+              "beta": 20000,
+              "alpha": 20000,
+              "gamma": 10000
+            }
+          }
+        },
+        {
+          "trial": 4,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:56:38.895181+00:00",
+          "receipt_sha256": "a521ee7efd8f05db99fb2f39375ce6c098dd633e32d1c681a08fcf1ff4448c8b",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:56:43.260703+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 279.746,
+          "execution_to_result_ms": 4078.716,
+          "server_total_ms": 4365.522,
+          "observed_total_ms": 14659.461,
+          "value": {
+            "words": 50000,
+            "counts": {
+              "beta": 20000,
+              "alpha": 20000,
+              "gamma": 10000
+            }
+          }
+        },
+        {
+          "trial": 5,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T20:57:06.42407+00:00",
+          "receipt_sha256": "562457830d99af3c0cc1a3b816aedbffe6a8db3b936560ec4684cf8e7267d65a",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T20:57:14.237223+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 5399.501,
+          "execution_to_result_ms": 2401.524,
+          "server_total_ms": 7813.153,
+          "observed_total_ms": 24376.708,
+          "value": {
+            "words": 50000,
+            "counts": {
+              "beta": 20000,
+              "alpha": 20000,
+              "gamma": 10000
+            }
+          }
+        }
+      ],
+      "successful_time_summary": {
+        "queue_ms": {
+          "median": 314.635,
+          "min": 9.689,
+          "max": 18127.02
+        },
+        "execution_to_result_ms": {
+          "median": 2887.594,
+          "min": 2401.524,
+          "max": 4078.716
+        },
+        "server_total_ms": {
+          "median": 4365.522,
+          "min": 2898.882,
+          "max": 21304.648
+        }
+      }
+    },
+    {
+      "platform": "node-linux",
+      "scenario": "mirror-download",
+      "requested_trials": 5,
+      "started_trials": 5,
+      "successful_trials": 5,
+      "failed_trials": 0,
+      "interrupted_trials": 0,
+      "pending_trials": 0,
+      "not_started_trials": 0,
+      "complete": true,
+      "samples": [
+        {
+          "trial": 1,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T21:03:32.21116+00:00",
+          "receipt_sha256": "5d8844453bb4c3a319531257cdfc1d94be551d6a5e4804d8394932d970c6c57e",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T21:03:55.569889+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 76.302,
+          "execution_to_result_ms": 23275.065,
+          "server_total_ms": 23358.729,
+          "observed_total_ms": 29057.684,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 1099.478
+        },
+        {
+          "trial": 2,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T21:04:06.679179+00:00",
+          "receipt_sha256": "33f18cf9b75005834073b11d92056fb70841cf8fd436bd651720842398643737",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T21:04:48.120172+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 28.978,
+          "execution_to_result_ms": 41404.312,
+          "server_total_ms": 41440.993,
+          "observed_total_ms": 46262.461,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 1057.745
+        },
+        {
+          "trial": 3,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T21:04:51.358653+00:00",
+          "receipt_sha256": "144150ac50e7ce4f637808a60571a7037967f93c004524c4bb8755c39813785d",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T21:06:15.273888+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 24.81,
+          "execution_to_result_ms": 83886.76,
+          "server_total_ms": 83915.235,
+          "observed_total_ms": 85565.453,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 1069.109
+        },
+        {
+          "trial": 4,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T21:06:19.212405+00:00",
+          "receipt_sha256": "516dc0a9e3a63cd3fa09f558cdb0190f516f99a0af79a1a32854c49cc5eba435",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T21:09:54.358205+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 73.135,
+          "execution_to_result_ms": 215069.628,
+          "server_total_ms": 215145.8,
+          "observed_total_ms": 217362.681,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 861.861
+        },
+        {
+          "trial": 5,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T21:10:09.913053+00:00",
+          "receipt_sha256": "6bcb4c6943e4ee5ca1fab99b557bf6bfca3b831fe1dfd673a10826c1f677c1d5",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T21:12:33.627831+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 22.224,
+          "execution_to_result_ms": 143682.287,
+          "server_total_ms": 143714.778,
+          "observed_total_ms": 150863.18,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 870.271
+        }
+      ],
+      "successful_time_summary": {
+        "queue_ms": {
+          "median": 28.978,
+          "min": 22.224,
+          "max": 76.302
+        },
+        "execution_to_result_ms": {
+          "median": 83886.76,
+          "min": 23275.065,
+          "max": 215069.628
+        },
+        "server_total_ms": {
+          "median": 83915.235,
+          "min": 23358.729,
+          "max": 215145.8
+        }
+      }
+    },
+    {
+      "platform": "php-shared-linux",
+      "scenario": "mirror-download",
+      "requested_trials": 5,
+      "started_trials": 4,
+      "successful_trials": 3,
+      "failed_trials": 0,
+      "interrupted_trials": 1,
+      "pending_trials": 0,
+      "not_started_trials": 1,
+      "complete": false,
+      "samples": [
+        {
+          "trial": 1,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T21:03:32.210323+00:00",
+          "receipt_sha256": "93439f3f3c925fe0e761f99d144f1451d38013dbf42abac7878e9318129d3479",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T21:03:56.61868+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 431.061,
+          "execution_to_result_ms": 23973.968,
+          "server_total_ms": 24408.357,
+          "observed_total_ms": 29051.325,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 740.878
+        },
+        {
+          "trial": 2,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T21:04:06.681251+00:00",
+          "receipt_sha256": "6f5fb0afd08cba1000782818f6b3391af0be410f3bd160415435ee4e6a93252d",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T21:10:28.023705+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 362.097,
+          "execution_to_result_ms": 380978.342,
+          "server_total_ms": 381342.454,
+          "observed_total_ms": 389693.654,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 796.854
+        },
+        {
+          "trial": 3,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T21:10:42.640322+00:00",
+          "receipt_sha256": "99d477dad06ca0dd04be767520a2457aa5f897dca6c60c6e6cab6147847497cd",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T21:11:16.854118+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 301.33,
+          "execution_to_result_ms": 33909.549,
+          "server_total_ms": 34213.796,
+          "observed_total_ms": 40704.223,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 947.949
+        },
+        {
+          "trial": 4,
+          "status": "cancelled",
+          "submitted_at": "2026-11-26T21:11:20.20396+00:00",
+          "receipt_sha256": "59145a4ba32c67bf5b7de79fd0909b1589596b5631ef1ea70f102be57ca8399d",
+          "outcome": "interrupted",
+          "passed": false,
+          "finished_at": "2026-11-26T21:11:53.716085+00:00",
+          "reason": "Auxiliary source-route experiment was closed by the operator; not a completed execution-time sample."
+        }
+      ],
+      "successful_time_summary": {
+        "queue_ms": {
+          "median": 362.097,
+          "min": 301.33,
+          "max": 431.061
+        },
+        "execution_to_result_ms": {
+          "median": 33909.549,
+          "min": 23973.968,
+          "max": 380978.342
+        },
+        "server_total_ms": {
+          "median": 34213.796,
+          "min": 24408.357,
+          "max": 381342.454
+        }
+      }
+    },
+    {
+      "platform": "php-routeros-arm64",
+      "scenario": "mirror-download",
+      "requested_trials": 5,
+      "started_trials": 2,
+      "successful_trials": 1,
+      "failed_trials": 0,
+      "interrupted_trials": 1,
+      "pending_trials": 0,
+      "not_started_trials": 3,
+      "complete": false,
+      "samples": [
+        {
+          "trial": 1,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T21:03:32.219095+00:00",
+          "receipt_sha256": "6d0865fb9bae9b11cfba7b2cba07b0413006d793308d30a69b1594fd313f66b4",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T21:05:32.900068+00:00",
+          "executor_version": "0.8.4",
+          "queue_ms": 300.324,
+          "execution_to_result_ms": 120379.082,
+          "server_total_ms": 120680.973,
+          "observed_total_ms": 124405.929,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 855.289
+        },
+        {
+          "trial": 2,
+          "status": "cancelled",
+          "submitted_at": "2026-11-26T21:05:36.285506+00:00",
+          "receipt_sha256": "2fdf9a85194f9ba2c914dc0aec9a9c05014fb21bc655aa9a64c14db024471cf1",
+          "outcome": "interrupted",
+          "passed": false,
+          "finished_at": "2026-11-26T21:12:09.808354+00:00",
+          "reason": "Auxiliary source-route experiment was closed by the operator; not a completed execution-time sample."
+        }
+      ],
+      "successful_time_summary": {
+        "queue_ms": {
+          "median": 300.324,
+          "min": 300.324,
+          "max": 300.324
+        },
+        "execution_to_result_ms": {
+          "median": 120379.082,
+          "min": 120379.082,
+          "max": 120379.082
+        },
+        "server_total_ms": {
+          "median": 120680.973,
+          "min": 120680.973,
+          "max": 120680.973
+        }
+      }
+    },
+    {
+      "platform": "android-arm64",
+      "scenario": "mirror-download",
+      "requested_trials": 5,
+      "started_trials": 5,
+      "successful_trials": 5,
+      "failed_trials": 0,
+      "interrupted_trials": 0,
+      "pending_trials": 0,
+      "not_started_trials": 0,
+      "complete": true,
+      "samples": [
+        {
+          "trial": 1,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T21:03:32.206949+00:00",
+          "receipt_sha256": "4947acba7d5f0f09a704452695b67a9b22fa8ee59c1e554e046eea3206404180",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T21:04:05.155813+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 12202.98,
+          "execution_to_result_ms": 20743.21,
+          "server_total_ms": 32948.864,
+          "observed_total_ms": 37512.14,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 1003.002
+        },
+        {
+          "trial": 2,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T21:04:23.422354+00:00",
+          "receipt_sha256": "77681b9961654bd4d565c73e6379ddd0092716d7f9e05a3de72757f8499f357e",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T21:04:34.771637+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 373.778,
+          "execution_to_result_ms": 10973.86,
+          "server_total_ms": 11349.283,
+          "observed_total_ms": 24716.895,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 1069.498
+        },
+        {
+          "trial": 3,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T21:04:50.440249+00:00",
+          "receipt_sha256": "80dc6cec36c4bd061156adff7460900af453c63115339ed9b481322c85e8fd33",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T21:04:56.55623+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 28.812,
+          "execution_to_result_ms": 6084.787,
+          "server_total_ms": 6115.981,
+          "observed_total_ms": 6849.944,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 793.878
+        },
+        {
+          "trial": 4,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T21:04:58.604608+00:00",
+          "receipt_sha256": "688aea6f5ee1532feff4f184bc556e4e7e1d360dec8f18c4f02ba92fb78e6b4c",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T21:05:02.422571+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 74.199,
+          "execution_to_result_ms": 3739.611,
+          "server_total_ms": 3817.963,
+          "observed_total_ms": 4894.966,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 908.924
+        },
+        {
+          "trial": 5,
+          "status": "succeeded",
+          "submitted_at": "2026-11-26T21:05:05.266768+00:00",
+          "receipt_sha256": "b162528163a99ab4b73c084db96c5c347d49948b710dfeeeaa21a290d36a03f0",
+          "outcome": "passed",
+          "passed": true,
+          "finished_at": "2026-11-26T21:05:08.655431+00:00",
+          "executor_version": "0.8.0",
+          "queue_ms": 62.194,
+          "execution_to_result_ms": 3323.876,
+          "server_total_ms": 3388.663,
+          "observed_total_ms": 4308.761,
+          "bytes": 86195,
+          "sha256": "a781c7c42e75ada0b232c167d4eff77fae3e819e56d68464b69ee920cff686b7",
+          "artifact_verified": true,
+          "verification_ms": 948.326
+        }
+      ],
+      "successful_time_summary": {
+        "queue_ms": {
+          "median": 74.199,
+          "min": 28.812,
+          "max": 12202.98
+        },
+        "execution_to_result_ms": {
+          "median": 6084.787,
+          "min": 3323.876,
+          "max": 20743.21
+        },
+        "server_total_ms": {
+          "median": 6115.981,
+          "min": 3388.663,
+          "max": 32948.864
+        }
+      }
+    }
+  ],
+  "totals": {
+    "successful": 49,
+    "failed": 0,
+    "interrupted": 5,
+    "pending": 0
+  }
+}

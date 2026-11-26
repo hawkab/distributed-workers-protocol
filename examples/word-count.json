@@ -1,0 +1,6 @@
+{
+  "operation": "javascript",
+  "input": {"tokens": ["alpha", "beta", "alpha", "gamma", "beta"], "repeat": 10000},
+  "script": "function run(input, resume, ctx) { var counts = resume && resume.counts ? resume.counts : {}; var start = resume && resume.next_round ? resume.next_round : 0; for (var r = start; r < input.repeat; r++) { for (var i = 0; i < input.tokens.length; i++) { var key = input.tokens[i]; counts[key] = (counts[key] || 0) + 1; } } ctx.checkpoint({next_round: input.repeat, counts: counts}); return {words: input.tokens.length * input.repeat, counts: counts}; }",
+  "required_capabilities": ["javascript", "javascript.portable.v1"]
+}

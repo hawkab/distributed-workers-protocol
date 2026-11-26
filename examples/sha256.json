@@ -1,0 +1,5 @@
+{
+  "operation": "sha256",
+  "input": {"text": "abc"},
+  "required_capabilities": ["sha256"]
+}

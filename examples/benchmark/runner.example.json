@@ -1,0 +1,9 @@
+{
+  "base_url": "https://gateway.example.invalid",
+  "admin_token_file": "/private/fleet-admin-token",
+  "label": "mixed-pool",
+  "required_capabilities": [],
+  "resource_requirements": {},
+  "allowed_worker_ids": [],
+  "priority": 100
+}

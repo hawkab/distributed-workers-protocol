@@ -138,6 +138,34 @@
           }
         }
       ]
+    },
+    "execution": {
+      "type": "object",
+      "required": [
+        "max_concurrent_jobs"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "max_concurrent_jobs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mode": {
+          "type": "string"
+        },
+        "cpu_utilization": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "memory_reserve_bytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
     }
   }
 }

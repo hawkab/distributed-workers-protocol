@@ -517,3 +517,26 @@ A completed remote effect remains recoverable during a proxy outage: status
 lookup identifies it, then begin validates the current normalized request hash
 before returning the cached response without any vendor call. An unavailable
 new required route never reserves a fresh external effect intent.
+
+## Adaptive parallel execution
+
+A worker remains one server-assigned identity. `X-Worker-Profile` may include
+`execution: {max_concurrent_jobs, mode?, cpu_utilization?, memory_reserve_bytes?}`.
+The current admission budget can be zero; a missing execution budget means one
+slot for compatibility. CPU utilization is a fraction of effective CPU capacity.
+Only quantities and a generic policy mode are reported.
+
+`POST /v1/jobs/claim` accepts a nonnegative `slot_id` (default 0). Each slot
+retains the same identity across HTTP retries and process restarts. Claiming
+the same live slot returns its existing attempt and fencing token. Different
+slots may receive independent jobs under the same worker identity. The gateway
+serializes admission per worker and refuses additional work beyond the current
+budget. Existing leases remain renewable after the budget shrinks. Every
+completion, network effect and artifact retains its individual job/attempt fence.
+
+Runtimes keep separate durable state per slot and drain productive jobs before
+applying an update. Admission follows current CPU and memory pressure. Batch
+servers reserve capacity for other services; shared desktops use a larger
+reserve. Android battery operation is single-execution, with light parallelism
+only under suitable power, thermal, memory and CPU conditions. Unknown CPU
+telemetry never justifies increasing concurrency.

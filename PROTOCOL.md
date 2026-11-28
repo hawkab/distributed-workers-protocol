@@ -347,6 +347,17 @@ free. Consumers stream bytes through the gateway API.
 | `GET /v1/artifacts/{artifact_id}/content` | Device bearer + identity headers; scoped sealed-artifact recovery stream |
 | `GET /v1/admin/artifacts/{artifact_id}/content` | Admin bearer only; streams exact bytes with media type, attachment disposition and SHA ETag |
 
+A claim may include `sealed_artifact_put: true` in its job. A worker with
+known length and SHA-256 can submit the whole result with one authenticated
+`PUT /v1/jobs/{job}/artifacts/content?key=...&name=...&sha256=...`.
+Pass Content-Length, the three attempt headers used for chunk writes, and the
+artifact Content-Type (or the optional URL-encoded `media_type` parameter).
+The response is the ordinary sealed artifact receipt. Replaying identical bytes
+and metadata with the same attempt/key returns that receipt; a conflicting
+body returns 409. An expired owner's result can only become a candidate.
+Continue to use the resumable chunk operations for other claims and for
+streaming outputs larger than the worker's staging buffer.
+
 Status/content GET and raw chunk PUT use device bearer plus `X-Worker-Id`,
 `X-Attempt-Id`, `X-Fencing-Token`. JSON routes carry identity in their bodies.
 The device content route requires the current live fenced attempt of the

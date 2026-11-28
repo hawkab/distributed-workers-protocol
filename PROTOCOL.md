@@ -568,3 +568,18 @@ references would exceed the response budget, `more_ready: true` means the
 caller can remove the returned IDs and request the remaining ones immediately.
 A server without this extension continues to return references for the
 `return=minimal` preference.
+
+## Withdrawing an unclaimed job
+
+An administrator can POST `{"operation_id":"<UUID>"}` to
+`/v1/admin/jobs/{id}/withdraw-unclaimed`. Persist the operation UUID before the
+first request. The gateway only withdraws a queued job with no current or past
+attempt and a zero fencing token. It returns HTTP 200 with
+`{"job_id":"…","operation_id":"…","withdrawn":true}`. A caller that lost
+the acknowledgement can repeat that exact request and obtain the same receipt.
+
+The job is terminal and unavailable for claims when the receipt is issued.
+Any other withdrawal UUID, prior lease, ordinary cancellation or reuse of an
+operation UUID for another job gives HTTP 409. An unknown job gives HTTP 404.
+Issue replacement work only after verifying the successful receipt for both
+persisted UUIDs. HTTP errors or a missing endpoint do not establish withdrawal.

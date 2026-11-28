@@ -551,3 +551,20 @@ servers reserve capacity for other services; shared desktops use a larger
 reserve. Android battery operation is single-execution, with light parallelism
 only under suitable power, thermal, memory and CPU conditions. Unknown CPU
 telemetry never justifies increasing concurrency.
+
+## Waiting for completed jobs
+
+An administrator can POST a JSON object with an array of job UUIDs in `ids` to
+`/v1/admin/jobs/wait`. The response contains a `jobs` array. Only terminal
+jobs appear. `Prefer: wait=20, return=minimal` returns each terminal job's
+`id`, `status` and `result_ref`. GET that relative path to obtain its result.
+
+With `Prefer: wait=20, return=minimal, include=small-results`, a server can
+include the same result object as GET in a row, replacing that row's
+`result_ref`. A row can still have a reference, including a previously stored
+result or a cancelled job. Handle each row separately. Server-selected budgets
+bound individual inline results and the combined response. When even the
+references would exceed the response budget, `more_ready: true` means the
+caller can remove the returned IDs and request the remaining ones immediately.
+A server without this extension continues to return references for the
+`return=minimal` preference.
